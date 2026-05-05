@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pinteq · OSINT Source Library</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080810;
+  --surface: #0e0e1a;
+  --surface2: #131320;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --accent: #4a7eff;
+  --accent-dim: rgba(74,126,255,0.1);
+  --text: #eaeaf4;
+  --muted: #68687f;
+  --muted2: #44445a;
+  --green: #2ecc71;
+  --green-dim: rgba(46,204,113,0.1);
+  --amber: #f39c12;
+  --amber-dim: rgba(243,156,18,0.1);
+  --red: #e74c3c;
+  --red-dim: rgba(231,76,60,0.1);
+  --purple: #9b59b6;
+  --purple-dim: rgba(155,89,182,0.1);
+  --teal: #1abc9c;
+  --teal-dim: rgba(26,188,156,0.1);
+  --mono: 'DM Mono', monospace;
+  --sans: 'Instrument Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Layout */
+.app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sidebar-mark {
+  font-family: var(--mono);
+  font-size: .9rem;
+  font-weight: 300;
+  letter-spacing: .14em;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: .15em;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-mark .bar { color: var(--accent); opacity: .6; }
+.sidebar-subtitle {
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-top: .35rem;
+}
+
+.nav-section { display: flex; flex-direction: column; gap: .15rem; }
+.nav-label {
+  font-family: var(--mono);
+  font-size: .58rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  padding: .5rem .75rem .35rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .55rem .75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .15s;
+  text-decoration: none;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--surface2); }
+.nav-item.active { background: var(--accent-dim); }
+
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nav-item-text {
+  font-family: var(--mono);
+  font-size: .72rem;
+  letter-spacing: .04em;
+  color: var(--muted);
+}
+.nav-item.active .nav-item-text { color: var(--accent); }
+.nav-item:hover .nav-item-text { color: var(--text); }
+
+.nav-count {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--muted2);
+  background: var(--surface2);
+  padding: .1rem .45rem;
+  border-radius: 3px;
+}
+
+/* Main content */
+.main {
+  margin-left: 260px;
+  flex: 1;
+  padding: 3rem 2.5rem;
+  max-width: 1100px;
+}
+
+/* Search bar */
+.search-wrap {
+  margin-bottom: 2.5rem;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: .85rem 1rem .85rem 2.75rem;
+  font-family: var(--mono);
+  font-size: .85rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+  letter-spacing: .04em;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted2); }
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--muted2);
+}
+
+/* Section header */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-top: .5rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.section-desc {
+  font-size: .85rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.section-count {
+  font-family: var(--mono);
+  font-size: .65rem;
+  letter-spacing: .1em;
+  color: var(--muted2);
+}
+
+/* Resource cards */
+.resource-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: 3rem;
+}
+
+.resource-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all .18s;
+  position: relative;
+  overflow: hidden;
+}
+
+.resource-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity .18s;
+}
+
+.resource-card:hover {
+  border-color: var(--border2);
+  background: var(--surface2);
+  transform: translateY(-1px);
+}
+
+.resource-card:hover::before { opacity: 1; }
+
+/* Category colors */
+.cat-people::before { background: var(--accent); }
+.cat-digital::before { background: var(--green); }
+.cat-comms::before { background: var(--amber); }
+.cat-financial::before { background: var(--purple); }
+.cat-framework::before { background: var(--teal); }
+.cat-michigan::before { background: var(--red); }
+.cat-workspace::before { background: #e67e22; }
+
+.resource-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+  gap: .75rem;
+}
+
+.resource-name {
+  font-size: .95rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.resource-tags {
+  display: flex;
+  gap: .35rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: .58rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .2rem .5rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.tag-free { background: var(--green-dim); color: var(--green); }
+.tag-paid { background: var(--amber-dim); color: var(--amber); }
+.tag-freemium { background: var(--purple-dim); color: var(--purple); }
+.tag-critical { background: var(--red-dim); color: var(--red); }
+.tag-start { background: var(--teal-dim); color: var(--teal); }
+.tag-later { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+.resource-desc {
+  font-size: .85rem;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: .9rem;
+}
+
+.resource-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.resource-url {
+  font-family: var(--mono);
+  font-size: .65rem;
+  letter-spacing: .04em;
+  color: var(--accent);
+  text-decoration: none;
+  opacity: .8;
+  transition: opacity .15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.resource-url:hover { opacity: 1; }
+
+.resource-use {
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: .06em;
+  color: var(--muted2);
+  white-space: nowrap;
+}
+
+/* Priority badge */
+.priority {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .6rem;
+  padding-top: .6rem;
+  border-top: 1px solid var(--border);
+}
+
+.priority-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.priority-text {
+  font-family: var(--mono);
+  font-size: .62rem;
+  letter-spacing: .06em;
+  color: var(--muted2);
+}
+
+/* Learn section */
+.learn-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: .75rem;
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 1rem;
+  align-items: start;
+  transition: all .18s;
+}
+.learn-card:hover { border-color: var(--border2); background: var(--surface2); }
+
+.learn-num {
+  font-family: var(--mono);
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--muted2);
+  line-height: 1;
+}
+
+.learn-title {
+  font-size: .95rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: .35rem;
+}
+
+.learn-desc {
+  font-size: .85rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.learn-time {
+  font-family: var(--mono);
+  font-size: .65rem;
+  letter-spacing: .08em;
+  color: var(--muted2);
+  white-space: nowrap;
+  padding-top: .15rem;
+}
+
+/* Operators table */
+.operators-table {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.op-header {
+  display: grid;
+  grid-template-columns: 200px 1fr 180px;
+  gap: 1rem;
+  padding: .65rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.op-header span {
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+.op-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 180px;
+  gap: 1rem;
+  padding: .8rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.op-row:last-child { border-bottom: none; }
+.op-row:hover { background: var(--surface2); }
+
+.op-syntax {
+  font-family: var(--mono);
+  font-size: .78rem;
+  color: var(--accent);
+  letter-spacing: .04em;
+}
+
+.op-desc {
+  font-size: .85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.op-example {
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--muted2);
+  letter-spacing: .03em;
+}
+
+/* Michigan section */
+.mi-stack { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 2rem; }
+
+.mi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: 0 6px 6px 0;
+  padding: 1rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  transition: background .15s;
+}
+.mi-card:hover { background: var(--surface2); }
+.mi-name { font-size: .9rem; font-weight: 500; color: var(--text); margin-bottom: .25rem; }
+.mi-desc { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+.mi-meta { text-align: right; }
+.mi-cost { font-family: var(--mono); font-size: .75rem; color: var(--green); font-weight: 500; }
+.mi-url { font-family: var(--mono); font-size: .62rem; color: var(--accent); text-decoration: none; display: block; margin-top: .2rem; }
+
+/* Workflow section */
+.workflow { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 2rem; }
+
+.workflow-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.workflow-num {
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.workflow-title { font-size: .9rem; font-weight: 500; color: var(--text); margin-bottom: .25rem; }
+.workflow-desc { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+.workflow-tools { font-family: var(--mono); font-size: .65rem; color: var(--muted2); margin-top: .4rem; letter-spacing: .04em; }
+
+/* Page title */
+.page-title { font-size: 1.6rem; font-weight: 500; margin-bottom: .5rem; }
+.page-sub { font-size: .9rem; color: var(--muted); margin-bottom: 2.5rem; line-height: 1.6; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 1.5rem; }
+  .resource-grid { grid-template-columns: 1fr; }
+  .op-header, .op-row { grid-template-columns: 140px 1fr; }
+  .op-header span:last-child, .op-row .op-example { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div>
+    <div class="sidebar-mark">
+      <span class="bar">|</span><span>pinteq</span><span class="bar">|</span>
+    </div>
+    <div class="sidebar-subtitle">OSINT Source Library</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Categories</div>
+    <a class="nav-item active" href="#people">
+      <div class="nav-dot" style="background:var(--accent)"></div>
+      <span class="nav-item-text">People & identity</span>
+      <span class="nav-count">8</span>
+    </a>
+    <a class="nav-item" href="#digital">
+      <div class="nav-dot" style="background:var(--green)"></div>
+      <span class="nav-item-text">Digital footprint</span>
+      <span class="nav-count">7</span>
+    </a>
+    <a class="nav-item" href="#comms">
+      <div class="nav-dot" style="background:var(--amber)"></div>
+      <span class="nav-item-text">Communications</span>
+      <span class="nav-count">5</span>
+    </a>
+    <a class="nav-item" href="#financial">
+      <div class="nav-dot" style="background:var(--purple)"></div>
+      <span class="nav-item-text">Financial & legal</span>
+      <span class="nav-count">6</span>
+    </a>
+    <a class="nav-item" href="#michigan">
+      <div class="nav-dot" style="background:var(--red)"></div>
+      <span class="nav-item-text">Michigan-specific</span>
+      <span class="nav-count">6</span>
+    </a>
+    <a class="nav-item" href="#workspace">
+      <div class="nav-dot" style="background:#e67e22"></div>
+      <span class="nav-item-text">Workspace & tools</span>
+      <span class="nav-count">5</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Learn</div>
+    <a class="nav-item" href="#framework">
+      <div class="nav-dot" style="background:var(--teal)"></div>
+      <span class="nav-item-text">Frameworks</span>
+    </a>
+    <a class="nav-item" href="#dorking">
+      <div class="nav-dot" style="background:var(--teal)"></div>
+      <span class="nav-item-text">Google dorking</span>
+    </a>
+    <a class="nav-item" href="#workflow">
+      <div class="nav-dot" style="background:var(--teal)"></div>
+      <span class="nav-item-text">Investigation workflow</span>
+    </a>
+    <a class="nav-item" href="#priority">
+      <div class="nav-dot" style="background:var(--teal)"></div>
+      <span class="nav-item-text">Priority sequence</span>
+    </a>
+  </div>
+
+  <div style="margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border);">
+    <div style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;color:var(--muted2);">Pinteq LLC · v1.0 · May 2026</div>
+    <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted2);margin-top:.3rem;">matt@pinteq.co</div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <h1 class="page-title">OSINT Source Library</h1>
+  <p class="page-sub">A curated reference of intelligence sources, tools, and methodology organized by category. Each entry includes cost, use case, priority, and direct links. This is a living document — add notes and new sources as you build your practice.</p>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input class="search-input" type="text" placeholder="Search sources, tools, or use cases..." id="searchInput" oninput="filterCards(this.value)" />
+  </div>
+
+  <!-- PEOPLE & IDENTITY -->
+  <div id="people">
+    <div class="section-head">
+      <div class="section-title">People & identity</div>
+      <div class="section-count">8 sources</div>
+    </div>
+    <p class="section-desc">The factual anchors of every investigation. Names, addresses, phone numbers, aliases, associates, and history. Always start here before moving to digital sources.</p>
+    <div class="resource-grid" id="grid-people">
+
+      <div class="resource-card cat-people" data-search="ichat michigan criminal history background check">
+        <div class="resource-top">
+          <div class="resource-name">Michigan ICHAT</div>
+          <div class="resource-tags"><span class="tag tag-critical">Critical</span><span class="tag tag-paid">$10/search</span></div>
+        </div>
+        <div class="resource-desc">Michigan's Internet Criminal History Access Tool. Criminal history records for Michigan subjects — convictions, arrests, dispositions. Already referenced in Chuck's Smokeball folder structure. Essential for every witness and subject profile in a Michigan criminal case.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://ichat.state.mi.us" target="_blank">ichat.state.mi.us</a>
+          <span class="resource-use">Criminal history</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Start using immediately on every case</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-people" data-search="micourt michigan courts case lookup civil criminal public records">
+        <div class="resource-top">
+          <div class="resource-name">MiCOURT — Michigan Courts Online</div>
+          <div class="resource-tags"><span class="tag tag-critical">Critical</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Public case lookup for Michigan state courts. Search by name to find civil and criminal case history statewide. Reveals prior civil suits, restraining orders, small claims, traffic, and criminal matters that ICHAT may not capture fully.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://courts.michigan.gov/self-help/center/pages/case-search.aspx" target="_blank">courts.michigan.gov</a>
+          <span class="resource-use">Court history</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Free and essential — use on every subject</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-people" data-search="pacer federal court bankruptcy criminal civil records">
+        <div class="resource-top">
+          <div class="resource-name">PACER — Federal Courts</div>
+          <div class="resource-tags"><span class="tag tag-start">Start now</span><span class="tag tag-paid">$.10/page</span></div>
+        </div>
+        <div class="resource-desc">Public Access to Court Electronic Records. Federal court filings — bankruptcies, federal criminal cases, civil suits, restraining orders across all federal districts. Create a free account; most searches cost under $1. Essential for financial and federal criminal history.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://pacer.gov" target="_blank">pacer.gov</a>
+          <span class="resource-use">Federal records</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Create account this week</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-people" data-search="spokeo beenverified people search address phone relatives associates">
+        <div class="resource-top">
+          <div class="resource-name">Spokeo / BeenVerified</div>
+          <div class="resource-tags"><span class="tag tag-freemium">Freemium</span><span class="tag tag-paid">$20-40/mo</span></div>
+        </div>
+        <div class="resource-desc">People aggregators that compile address history, phone numbers, relatives, email addresses, and associates from public records. Fast starting points for subject profiles. Good for confirming basic identity and finding address history. Not as deep as TLO but accessible without a professional license.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://spokeo.com" target="_blank">spokeo.com</a>
+          <span class="resource-use">Identity & address history</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Subscribe when billing justifies it</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-people" data-search="tlo irb lexisnexis accurint professional people search deep research">
+        <div class="resource-top">
+          <div class="resource-name">TLO / LexisNexis Accurint</div>
+          <div class="resource-tags"><span class="tag tag-later">Later</span><span class="tag tag-paid">$50-200/mo</span></div>
+        </div>
+        <div class="resource-desc">Professional-grade people search databases used by PI agencies, law firms, and investigators. Deep address history going back decades, phone records, vehicle registrations, asset searches, business associations, and skip tracing. Requires a professional account — PI license or attorney affiliation helps.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://tlo.com" target="_blank">tlo.com</a>
+          <span class="resource-use">Deep professional research</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">Year 2 — post PI license</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-people" data-search="michigan SOS secretary of state business license professional LARA">
+        <div class="resource-top">
+          <div class="resource-name">Michigan SOS & LARA</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+        <div class="resource-desc">Secretary of State business registrations and LARA professional license lookups. Find every business associated with a subject, their registered agent, officers, and status. Check professional licenses — contractor, medical, legal, real estate. You already know LARA from filing the LLC.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://mibusinessregistry.lara.state.mi.us" target="_blank">mibusinessregistry.lara.state.mi.us</a>
+          <span class="resource-use">Business & license history</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Free and immediately useful</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-people" data-search="voter registration public record address michigan">
+        <div class="resource-top">
+          <div class="resource-name">Michigan Voter Registration</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Michigan's Qualified Voter File is partially public. Voter registration confirms current address, registration status, and party affiliation. Useful for confirming address when other sources conflict or are outdated. Available through county clerks.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://mvic.sos.state.mi.us" target="_blank">mvic.sos.state.mi.us</a>
+          <span class="resource-use">Address confirmation</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--green)"></div>
+          <span class="priority-text">Free — add to subject profile workflow</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-people" data-search="death records obituary social security death index SSDI">
+        <div class="resource-top">
+          <div class="resource-name">SSDI & Obituary Search</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Social Security Death Index via FamilySearch confirms deceased status and last known state. Obituaries via Newspapers.com or local funeral home sites reveal family members, associates, and address history going back decades. Useful for locating relatives of subjects.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://familysearch.org/search/collection/1202535" target="_blank">familysearch.org</a>
+          <span class="resource-use">Deceased verification · family research</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">As needed</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DIGITAL FOOTPRINT -->
+  <div id="digital">
+    <div class="section-head">
+      <div class="section-title">Digital footprint & social media</div>
+      <div class="section-count">7 sources</div>
+    </div>
+    <p class="section-desc">People reveal enormous amounts of information voluntarily in digital spaces. Always document findings with a screenshot, the source URL, and a timestamp before the content changes or disappears.</p>
+    <div class="resource-grid" id="grid-digital">
+
+      <div class="resource-card cat-digital" data-search="maltego network graph visualization relationship mapping osint">
+        <div class="resource-top">
+          <div class="resource-name">Maltego Community Edition</div>
+          <div class="resource-tags"><span class="tag tag-start">Start now</span><span class="tag tag-free">Free CE</span></div>
+        </div>
+        <div class="resource-desc">The industry standard for relationship and network visualization. Maps connections between people, email addresses, domains, social accounts, and phone numbers as an interactive graph. The Community Edition is genuinely powerful for investigation work. Your primary visualization tool — learn this first.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://maltego.com" target="_blank">maltego.com</a>
+          <span class="resource-use">Network & relationship mapping</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Download and start learning this week</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-digital" data-search="sherlock username search social media platform enumeration">
+        <div class="resource-top">
+          <div class="resource-name">Sherlock</div>
+          <div class="resource-tags"><span class="tag tag-start">Start now</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Open source username enumeration tool. Given one username, searches 300+ social platforms simultaneously and returns all matching accounts. Run it on any username found during investigation to discover the full extent of a subject's social presence. Runs locally via Python.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://github.com/sherlock-project/sherlock" target="_blank">github.com/sherlock-project</a>
+          <span class="resource-use">Username enumeration</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Install this week — Python required</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-digital" data-search="wayback machine archive web historical evidence deleted posts">
+        <div class="resource-top">
+          <div class="resource-name">Wayback Machine</div>
+          <div class="resource-tags"><span class="tag tag-critical">Critical</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Internet Archive's historical web snapshots. If a subject deletes a post, changes their bio, or removes a website, Wayback may have captured it. Always check Wayback before concluding something doesn't exist. Also use archive.today to create your own snapshots of evidence before it disappears.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://web.archive.org" target="_blank">web.archive.org · archive.today</a>
+          <span class="resource-use">Historical digital evidence</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Use on every investigation — bookmark both</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-digital" data-search="epieos hunter email address social account identity lookup">
+        <div class="resource-top">
+          <div class="resource-name">Epieos / Hunter.io</div>
+          <div class="resource-tags"><span class="tag tag-freemium">Freemium</span></div>
+        </div>
+        <div class="resource-desc">Email-to-identity tools. Epieos takes an email address and finds associated social accounts and identity information. Hunter.io finds email addresses associated with domains and names — useful for finding contact info for witnesses or verifying employment claims.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://epieos.com" target="_blank">epieos.com · hunter.io</a>
+          <span class="resource-use">Email intelligence</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Free tier sufficient to start</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-digital" data-search="google dorking advanced search operators site filetype intitle">
+        <div class="resource-top">
+          <div class="resource-name">Google Advanced Search (Dorking)</div>
+          <div class="resource-tags"><span class="tag tag-critical">Critical</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Advanced search operators that surface what normal search hides. Combining operators finds documents, profiles, and mentions invisible to normal results. See the Google Dorking reference section below for the complete operator list with examples.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://google.com/advanced_search" target="_blank">google.com/advanced_search</a>
+          <span class="resource-use">Universal — every investigation</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Learn operators cold — see reference below</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-digital" data-search="whatsmyname namechk username cross platform account finder">
+        <div class="resource-top">
+          <div class="resource-name">WhatsMyName / Namechk</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Cross-platform username checkers that double as account finders. Search a target username across hundreds of platforms and see where it exists. Useful for connecting digital identities across platforms when you have one username but need the full picture.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://whatsmyname.app" target="_blank">whatsmyname.app</a>
+          <span class="resource-use">Cross-platform identity</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--green)"></div>
+          <span class="priority-text">Bookmark and use as needed</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-digital" data-search="exiftool metadata photo image gps location timestamp">
+        <div class="resource-top">
+          <div class="resource-name">ExifTool</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span><span class="tag tag-start">Learn early</span></div>
+        </div>
+        <div class="resource-desc">Reads metadata embedded in photos and documents — GPS coordinates, camera model, creation date, software used, and sometimes device serial numbers. A photo posted to social media may contain GPS coordinates revealing where the subject actually was. Free, runs locally.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://exiftool.org" target="_blank">exiftool.org</a>
+          <span class="resource-use">Photo & document metadata</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Install and learn — high value for evidence photos</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- COMMUNICATIONS -->
+  <div id="comms">
+    <div class="section-head">
+      <div class="section-title">Communications & relationship mapping</div>
+      <div class="section-count">5 sources</div>
+    </div>
+    <p class="section-desc">Who communicates with whom, through what channels, and when. Phone records are the primary source — your pipeline already handles CSV parsing. Social data provides the context layer.</p>
+    <div class="resource-grid" id="grid-comms">
+
+      <div class="resource-card cat-comms" data-search="phone records csv analysis call log python pandas">
+        <div class="resource-top">
+          <div class="resource-name">Phone record CSV analysis</div>
+          <div class="resource-tags"><span class="tag tag-critical">Critical</span><span class="tag tag-free">In pipeline</span></div>
+        </div>
+        <div class="resource-desc">You're already building this. Python + pandas to parse call logs into structured data. Identify communication frequency patterns, find clusters of contact around key dates and incidents, surface undisclosed relationships between parties, and flag burner or unknown numbers for follow-up investigation.</div>
+        <div class="resource-meta">
+          <span class="resource-url">Built into Pinteq pipeline</span>
+          <span class="resource-use">Call pattern analysis</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Core pipeline component — already scoped</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-comms" data-search="gephi network analysis visualization graph open source">
+        <div class="resource-top">
+          <div class="resource-name">Gephi</div>
+          <div class="resource-tags"><span class="tag tag-start">Start now</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Free, open source network analysis and visualization used by law enforcement and intelligence analysts worldwide. Feed it structured relationship data from phone records and social sources and it renders explorable network graphs. Works alongside Maltego — Maltego for discovery, Gephi for deep analysis.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://gephi.org" target="_blank">gephi.org</a>
+          <span class="resource-use">Network analysis & visualization</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Download and learn alongside Maltego</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-comms" data-search="numverify numlookup phone number carrier type voip mobile landline">
+        <div class="resource-top">
+          <div class="resource-name">Numverify / NumLookup</div>
+          <div class="resource-tags"><span class="tag tag-freemium">Freemium</span></div>
+        </div>
+        <div class="resource-desc">Phone number intelligence — returns carrier, line type (mobile/landline/VoIP), and geographic area code origin. Useful for validating contact numbers in phone records and flagging burner or VoIP lines that suggest attempts to obscure communication. Run every unknown number through this.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://numverify.com" target="_blank">numverify.com · numlookup.com</a>
+          <span class="resource-use">Phone number validation</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--green)"></div>
+          <span class="priority-text">Free tier is sufficient</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-comms" data-search="truecaller reverse phone lookup caller id">
+        <div class="resource-top">
+          <div class="resource-name">Truecaller / CallerID</div>
+          <div class="resource-tags"><span class="tag tag-freemium">Freemium</span></div>
+        </div>
+        <div class="resource-desc">Crowdsourced caller ID database. Reverse lookup unknown phone numbers to find associated names and user-submitted labels. Useful for identifying unknown numbers in phone records that don't appear in other databases. Results are crowdsourced — treat as a lead, not a fact.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://truecaller.com" target="_blank">truecaller.com</a>
+          <span class="resource-use">Unknown number identification</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">As needed — corroborate findings</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-comms" data-search="facebook social media graph search relationship investigation">
+        <div class="resource-top">
+          <div class="resource-name">Social media search operators</div>
+          <div class="resource-tags"><span class="tag tag-critical">Critical</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Facebook Graph Search (via URL manipulation), Instagram location and tag search, Twitter/X advanced search with date ranges. Knowing platform-specific search patterns is more valuable than any paid tool. Study the operators for each platform. Always archive findings immediately — social content disappears.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://osintcurio.us/2019/08/22/the-most-useful-osint-tips-for-facebook" target="_blank">osintcurio.us — platform guides</a>
+          <span class="resource-use">Social intelligence</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Learn platform operators this week</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FINANCIAL & LEGAL -->
+  <div id="financial">
+    <div class="section-head">
+      <div class="section-title">Financial & legal history</div>
+      <div class="section-count">6 sources</div>
+    </div>
+    <p class="section-desc">Reveals assets, financial connections, business associations, and civil legal history that subjects don't volunteer. Often produces the most actionable findings for credibility challenges.</p>
+    <div class="resource-grid" id="grid-financial">
+
+      <div class="resource-card cat-financial" data-search="property records county register of deeds michigan real estate ownership">
+        <div class="resource-top">
+          <div class="resource-name">Michigan county property records</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+        <div class="resource-desc">County register of deeds — property ownership, purchase history, mortgages, liens, and transfers. Most Michigan counties have free online search. Reveals current and historical addresses, asset ownership, and financial relationships. Kent County and Muskegon County both have online portals. Start there.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://kentcountymi.gov/departments/register-of-deeds" target="_blank">kentcountymi.gov · muskegoncounty.org</a>
+          <span class="resource-use">Assets & address history</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Free — bookmark both county portals</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-financial" data-search="opencorporates business entity director officer registered agent">
+        <div class="resource-top">
+          <div class="resource-name">OpenCorporates</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span><span class="tag tag-start">Start now</span></div>
+        </div>
+        <div class="resource-desc">Global business entity database. Find every company a subject is or was associated with — as officer, director, registered agent, or owner. Covers US state records and international. Cross-reference with Michigan LARA for local entities. Essential for corporate intelligence and following money.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://opencorporates.com" target="_blank">opencorporates.com</a>
+          <span class="resource-use">Business history & associations</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Run on every subject with business history</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-financial" data-search="SEC EDGAR public company insider trading financial disclosure">
+        <div class="resource-top">
+          <div class="resource-name">SEC EDGAR</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Public company filings database. For subjects with connections to publicly traded companies — executive compensation, insider trading disclosures, ownership stakes, financial relationships. Less relevant for typical criminal defense but essential for white-collar and corporate investigation.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://sec.gov/cgi-bin/browse-edgar" target="_blank">sec.gov/edgar</a>
+          <span class="resource-use">Corporate & financial disclosure</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">As needed for corporate cases</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-financial" data-search="UCC filing lien secured interest commercial transaction">
+        <div class="resource-top">
+          <div class="resource-name">UCC Filings Search</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Uniform Commercial Code filings reveal secured interests — who has claims against a subject's assets. Searched through Michigan SOS. Reveals business relationships, creditors, and asset encumbrances that don't appear in court records. Useful for understanding financial relationships between parties.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://www.michigan.gov/sos/business-services/ucc" target="_blank">michigan.gov/sos/business-services/ucc</a>
+          <span class="resource-use">Asset encumbrances & creditors</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--green)"></div>
+          <span class="priority-text">Free — add to financial investigation workflow</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-financial" data-search="charity nonprofit 990 form IRS public record compensation">
+        <div class="resource-top">
+          <div class="resource-name">ProPublica Nonprofit Explorer</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">IRS Form 990 filings for nonprofits — reveals executive compensation, board members, financial flows, and organizational relationships. Useful when subjects have nonprofit associations. Also use CitizenAudit.org as an alternative search interface for 990 data.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://projects.propublica.org/nonprofits" target="_blank">projects.propublica.org/nonprofits</a>
+          <span class="resource-use">Nonprofit & compensation disclosure</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">As needed</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-financial" data-search="FEC campaign finance donation political contribution public record">
+        <div class="resource-top">
+          <div class="resource-name">FEC Campaign Finance</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Federal Election Commission public donation records. Any political contribution over $200 is public record — searchable by name, employer, and zip code. Reveals political connections, employer information as of the donation date, and address history going back decades.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://fec.gov/data" target="_blank">fec.gov/data</a>
+          <span class="resource-use">Political connections & employer history</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">As needed — underused and powerful</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MICHIGAN SPECIFIC -->
+  <div id="michigan">
+    <div class="section-head">
+      <div class="section-title">Michigan-specific resources</div>
+      <div class="section-count">6 sources</div>
+    </div>
+    <p class="section-desc">Resources specific to Michigan practice. These are your home court advantage — know them better than anyone else operating in West Michigan.</p>
+    <div class="mi-stack">
+      <div class="mi-card">
+        <div>
+          <div class="mi-name">ICHAT — Internet Criminal History Access Tool</div>
+          <div class="mi-desc">Michigan criminal history. $10 per search. Essential for every subject and witness in a Michigan criminal case. See People & Identity section for full notes.</div>
+        </div>
+        <div class="mi-meta">
+          <div class="mi-cost">$10 / search</div>
+          <a class="mi-url" href="https://ichat.state.mi.us" target="_blank">ichat.state.mi.us</a>
+        </div>
+      </div>
+
+      <div class="mi-card">
+        <div>
+          <div class="mi-name">IDACOR — Michigan Corrections Offender Tracking</div>
+          <div class="mi-desc">Michigan Department of Corrections offender search. Current and historical corrections records, parole status, conviction details. Already referenced in Chuck's Smokeball folder structure. Cross-reference every subject.</div>
+        </div>
+        <div class="mi-meta">
+          <div class="mi-cost">Free</div>
+          <a class="mi-url" href="https://mdocweb.state.mi.us/OTIS2/otis2.aspx" target="_blank">mdocweb.state.mi.us</a>
+        </div>
+      </div>
+
+      <div class="mi-card">
+        <div>
+          <div class="mi-name">Michigan Sex Offender Registry</div>
+          <div class="mi-desc">Public registry for registered sex offenders in Michigan. Search by name, address, or zip code. Useful for subject background and for cross-referencing witnesses. Updated regularly.</div>
+        </div>
+        <div class="mi-meta">
+          <div class="mi-cost">Free</div>
+          <a class="mi-url" href="https://mspsor.com" target="_blank">mspsor.com</a>
+        </div>
+      </div>
+
+      <div class="mi-card">
+        <div>
+          <div class="mi-name">MiCOURT — Michigan Courts Online Case Search</div>
+          <div class="mi-desc">Statewide public case lookup for Michigan state courts. Civil and criminal history by name. Free. Run on every subject and witness — reveals prior civil suits, restraining orders, and criminal matters beyond ICHAT scope.</div>
+        </div>
+        <div class="mi-meta">
+          <div class="mi-cost">Free</div>
+          <a class="mi-url" href="https://courts.michigan.gov/self-help/center/pages/case-search.aspx" target="_blank">courts.michigan.gov</a>
+        </div>
+      </div>
+
+      <div class="mi-card">
+        <div>
+          <div class="mi-name">Kent & Muskegon County Property Search</div>
+          <div class="mi-desc">Your two primary counties. Kent County Register of Deeds and Muskegon County property lookup both have free online search. Property ownership, tax records, and deed history. Bookmark both portals.</div>
+        </div>
+        <div class="mi-meta">
+          <div class="mi-cost">Free</div>
+          <a class="mi-url" href="https://www.accesskent.com/Departments/RegisterOfDeeds" target="_blank">accesskent.com · muskegoncounty.org</a>
+        </div>
+      </div>
+
+      <div class="mi-card">
+        <div>
+          <div class="mi-name">Michigan FOIA — Freedom of Information Act</div>
+          <div class="mi-desc">Michigan's FOIA covers state and local government records. Police reports, 911 call logs, body cam footage, incident reports, and government communications. Filed with the relevant agency — police department, county, or state. Response required within 5 business days. Critical for discovery expansion.</div>
+        </div>
+        <div class="mi-meta">
+          <div class="mi-cost">Varies by agency</div>
+          <a class="mi-url" href="https://www.michigan.gov/ag/consumer-protection/foia" target="_blank">michigan.gov/ag — FOIA guide</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSPACE TOOLS -->
+  <div id="workspace">
+    <div class="section-head">
+      <div class="section-title">Workspace & knowledge management</div>
+      <div class="section-count">5 tools</div>
+    </div>
+    <p class="section-desc">The tools that organize your practice, document your methodology, and make you faster and more rigorous on every case.</p>
+    <div class="resource-grid" id="grid-workspace">
+
+      <div class="resource-card cat-workspace" data-search="logseq knowledge management investigation notes graph journal">
+        <div class="resource-top">
+          <div class="resource-name">Logseq</div>
+          <div class="resource-tags"><span class="tag tag-start">Install tonight</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Block-based knowledge management with automatic daily journaling and a powerful graph view. Every entry is dated automatically — perfect for investigation logs. Block references let a finding appear in multiple cases without duplication. Local-first, your data stays on your machine. Preferred over Obsidian for investigation workflow.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://logseq.com" target="_blank">logseq.com</a>
+          <span class="resource-use">Investigation notes & knowledge base</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--red)"></div>
+          <span class="priority-text">Install tonight — your personal intelligence notebook</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-workspace" data-search="hunchly chrome extension evidence capture web investigation">
+        <div class="resource-top">
+          <div class="resource-name">Hunchly</div>
+          <div class="resource-tags"><span class="tag tag-paid">$130/yr</span><span class="tag tag-later">Month 2</span></div>
+        </div>
+        <div class="resource-desc">Chrome extension that automatically captures and archives every web page you visit during an investigation — with timestamp, URL, and session context. Creates a defensible record of your online research. Used by professional OSINT investigators and journalists. Worth the investment once you're on active cases.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://hunch.ly" target="_blank">hunch.ly</a>
+          <span class="resource-use">Web evidence capture & archiving</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">High value — invest when billing justifies it</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-workspace" data-search="obsidian markdown notes knowledge graph local">
+        <div class="resource-top">
+          <div class="resource-name">Obsidian</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Local markdown-based knowledge tool with a powerful graph view showing connections between notes. Strong plugin ecosystem. Good alternative to Logseq — use whichever fits your thinking style better. The graph view is genuinely useful for seeing connections across cases and subjects over time.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://obsidian.md" target="_blank">obsidian.md</a>
+          <span class="resource-use">Personal knowledge management</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">Alternative to Logseq — try both and choose</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-workspace" data-search="canary tokens honeytoken alert notification trap">
+        <div class="resource-top">
+          <div class="resource-name">Canarytokens</div>
+          <div class="resource-tags"><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Generates tracking tokens — URLs, documents, emails — that alert you when someone opens them. Useful for confirming document delivery, knowing when a subject accesses a file, or tracking whether shared materials are being forwarded. Advanced tool — learn when you need it.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://canarytokens.org" target="_blank">canarytokens.org</a>
+          <span class="resource-use">Delivery confirmation & tracking</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--muted2)"></div>
+          <span class="priority-text">Advanced — learn when relevant</span>
+        </div>
+      </div>
+
+      <div class="resource-card cat-workspace" data-search="virtual machine VM separate identity OSINT security compartment">
+        <div class="resource-top">
+          <div class="resource-name">VM / compartmentalized research environment</div>
+          <div class="resource-tags"><span class="tag tag-start">Learn early</span><span class="tag tag-free">Free</span></div>
+        </div>
+        <div class="resource-desc">Run OSINT research in a separate virtual machine or browser profile with a VPN to prevent your real identity from being exposed during investigation. VirtualBox is free. Kali Linux has OSINT tools pre-installed. This is operational security — protect yourself and your client from counter-investigation.</div>
+        <div class="resource-meta">
+          <a class="resource-url" href="https://virtualbox.org" target="_blank">virtualbox.org · kali.org</a>
+          <span class="resource-use">Operational security</span>
+        </div>
+        <div class="priority">
+          <div class="priority-dot" style="background:var(--amber)"></div>
+          <span class="priority-text">Important — set up a clean research environment</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FRAMEWORKS -->
+  <div id="framework">
+    <div class="section-head">
+      <div class="section-title">Frameworks & methodology</div>
+    </div>
+    <p class="section-desc">Learn these before the tools. Methodology is the skill — tools are just access mechanisms.</p>
+    <div class="learn-card">
+      <div class="learn-num">01</div>
+      <div>
+        <div class="learn-title">OSINT Framework — osintframework.com</div>
+        <div class="learn-desc">The living map of OSINT tools organized by category. Your first bookmark. Spend an hour navigating the categories tonight to understand the full landscape of what's available before you specialize.</div>
+      </div>
+      <div class="learn-time">Tonight</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num">02</div>
+      <div>
+        <div class="learn-title">OSINT Curious Project — osintcurio.us</div>
+        <div class="learn-desc">Free courses, webinars, and community built by working OSINT practitioners. Start with the 10-minute tips series and the weekly challenge exercises. The best free education available in the field.</div>
+      </div>
+      <div class="learn-time">This week</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num">03</div>
+      <div>
+        <div class="learn-title">Heuer — Psychology of Intelligence Analysis (CIA, free PDF)</div>
+        <div class="learn-desc">The foundational text on analytical thinking. Teaches you to identify cognitive biases before they corrupt an investigation. Free PDF at cia.gov/resources/csi/books-monographs. Read this in the first month — it will permanently change how you evaluate evidence.</div>
+      </div>
+      <div class="learn-time">Month 1</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num">04</div>
+      <div>
+        <div class="learn-title">Bellingcat Online Investigation Toolkit</div>
+        <div class="learn-desc">Bellingcat is the world's leading open source investigation organization. Their free toolkit and methodology guides are the best practical OSINT education available. toolkit.bellingcat.com — bookmark and work through it systematically.</div>
+      </div>
+      <div class="learn-time">Month 1</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num">05</div>
+      <div>
+        <div class="learn-title">Trace Labs CTF (Capture the Flag) competitions</div>
+        <div class="learn-desc">Trace Labs runs OSINT CTF competitions using real missing persons cases. The best way to develop your skills under realistic pressure. Participate in one within the first 60 days — the experience is immediately applicable to case investigation work.</div>
+      </div>
+      <div class="learn-time">Month 2</div>
+    </div>
+  </div>
+
+  <!-- GOOGLE DORKING -->
+  <div id="dorking" style="margin-top: 3rem;">
+    <div class="section-head">
+      <div class="section-title">Google dorking — operator reference</div>
+    </div>
+    <p class="section-desc">Learn these operators cold. Combining them is one of the most powerful free investigation techniques available. Every operator below is immediately applicable to case investigation.</p>
+
+    <div class="operators-table">
+      <div class="op-header">
+        <span>Operator</span>
+        <span>What it does</span>
+        <span>Example</span>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">site:domain.com</div>
+        <div class="op-desc">Limits results to a specific website or domain. Find everything indexed from one site.</div>
+        <div class="op-example">site:facebook.com "John Smith"</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">"exact phrase"</div>
+        <div class="op-desc">Returns only results containing that exact string. Essential for name searches.</div>
+        <div class="op-example">"Jason Allen" "Grand Rapids"</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">filetype:pdf</div>
+        <div class="op-desc">Returns only that file type. Finds court documents, reports, PDFs containing a name.</div>
+        <div class="op-example">"John Doe" filetype:pdf site:gov</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">intitle:"keyword"</div>
+        <div class="op-desc">Returns pages where the keyword appears in the page title. More precise than body text.</div>
+        <div class="op-example">intitle:"Jason Allen" Michigan</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">inurl:keyword</div>
+        <div class="op-desc">Returns pages where the keyword appears in the URL. Finds profile pages and directories.</div>
+        <div class="op-example">inurl:profile "Jason Allen"</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">-keyword</div>
+        <div class="op-desc">Excludes results containing that word. Clean up noisy results.</div>
+        <div class="op-example">"John Smith" Michigan -linkedin</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">OR / |</div>
+        <div class="op-desc">Returns results matching either term. Search multiple variations simultaneously.</div>
+        <div class="op-example">"Jason Allen" OR "Jason D Allen"</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">before:YYYY-MM-DD</div>
+        <div class="op-desc">Limits results to before a specific date. Find historical information or pre-incident activity.</div>
+        <div class="op-example">"Jason Allen" before:2025-12-01</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">after:YYYY-MM-DD</div>
+        <div class="op-desc">Limits results to after a specific date. Find post-incident activity and statements.</div>
+        <div class="op-example">"Jason Allen" after:2025-12-08</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">cache:url</div>
+        <div class="op-desc">Shows Google's cached version of a page. Useful if a page has changed or been deleted recently.</div>
+        <div class="op-example">cache:facebook.com/jasonallen</div>
+      </div>
+      <div class="op-row">
+        <div class="op-syntax">Combining operators</div>
+        <div class="op-desc">The real power comes from combining multiple operators in one query.</div>
+        <div class="op-example">"Jason Allen" site:facebook.com OR site:instagram.com before:2026-01-01</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVESTIGATION WORKFLOW -->
+  <div id="workflow" style="margin-top: 3rem;">
+    <div class="section-head">
+      <div class="section-title">Standard investigation workflow</div>
+    </div>
+    <p class="section-desc">Every investigation Pinteq runs follows this sequence. Consistency is what makes the output defensible and the process repeatable.</p>
+    <div class="workflow">
+      <div class="workflow-step">
+        <div class="workflow-num">01</div>
+        <div>
+          <div class="workflow-title">Subject intake</div>
+          <div class="workflow-desc">Log subject name, known aliases, DOB, last known address, role in case, and investigation objective. Define the specific questions this investigation needs to answer.</div>
+          <div class="workflow-tools">Tools: Logseq intake template · Pinteq investigation workspace</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="workflow-num">02</div>
+        <div>
+          <div class="workflow-title">Identity confirmation</div>
+          <div class="workflow-desc">Confirm full legal name, DOB, and current address before researching further. MiCOURT, Michigan SOS, and property records. Establish the correct identity to avoid researching the wrong person.</div>
+          <div class="workflow-tools">Tools: MiCOURT · Michigan SOS · county property records · Spokeo</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="workflow-num">03</div>
+        <div>
+          <div class="workflow-title">Legal & criminal history</div>
+          <div class="workflow-desc">ICHAT for Michigan criminal history. MiCOURT for civil case history. PACER for federal records. IDACOR for corrections. Document every finding with case numbers and dates.</div>
+          <div class="workflow-tools">Tools: ICHAT · MiCOURT · PACER · IDACOR</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="workflow-num">04</div>
+        <div>
+          <div class="workflow-title">Digital footprint sweep</div>
+          <div class="workflow-desc">Google dork for name + location combinations. Sherlock for username enumeration. Platform-specific social media searches. Document and archive everything found — screenshot with URL and timestamp.</div>
+          <div class="workflow-tools">Tools: Google dorking · Sherlock · Wayback Machine · archive.today · ExifTool</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="workflow-num">05</div>
+        <div>
+          <div class="workflow-title">Relationship mapping</div>
+          <div class="workflow-desc">Identify associates from social media, phone records, and court records. Map connections in Maltego. Note relationship type, how documented, and timeline of connection. Flag undisclosed relationships to known parties.</div>
+          <div class="workflow-tools">Tools: Maltego · Gephi · phone record CSV analysis · social media search</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="workflow-num">06</div>
+        <div>
+          <div class="workflow-title">Financial & asset research</div>
+          <div class="workflow-desc">Property records for address history and asset ownership. OpenCorporates for business associations. PACER for bankruptcy. UCC filings for creditor relationships. FEC for political donations and employer history.</div>
+          <div class="workflow-tools">Tools: County deeds · OpenCorporates · PACER · Michigan SOS UCC · FEC</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="workflow-num">07</div>
+        <div>
+          <div class="workflow-title">Source documentation</div>
+          <div class="workflow-desc">Every finding logged with: source name, access method, access date, URL or access path, and confidence level (confirmed / probable / possible / unverified). This is the chain of custody for your intelligence.</div>
+          <div class="workflow-tools">Tools: Logseq source log · Pinteq B4 source table</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="workflow-num">08</div>
+        <div>
+          <div class="workflow-title">Report production</div>
+          <div class="workflow-desc">Compile findings into the appropriate Pinteq report format. Facts separated from assessments. Confidence levels rated. Source table complete. Work product header applied. Delivered as a finished analytical product.</div>
+          <div class="workflow-tools">Tools: Pinteq B4 template · Pinteq subject profile template · Smokeball memo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIORITY SEQUENCE -->
+  <div id="priority" style="margin-top: 3rem; padding-bottom: 5rem;">
+    <div class="section-head">
+      <div class="section-title">Priority sequence — what to do and when</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num" style="color:var(--red)">◉</div>
+      <div>
+        <div class="learn-title">Tonight</div>
+        <div class="learn-desc">Bookmark osintframework.com and osintcurio.us · Download and install Logseq · Spend 20 minutes on osintframework.com navigating the category tree · Learn the 6 most powerful Google dork operators by writing them out</div>
+      </div>
+      <div class="learn-time">2–3 hrs</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num" style="color:var(--amber)">◉</div>
+      <div>
+        <div class="learn-title">This week</div>
+        <div class="learn-desc">Create PACER account · Download and install Maltego CE · Run your first practice investigation on a public figure · Bookmark MiCOURT and both county property portals · Install Sherlock (requires Python) · Set up a clean research browser profile</div>
+      </div>
+      <div class="learn-time">Week 1</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num" style="color:var(--green)">◉</div>
+      <div>
+        <div class="learn-title">Month 1</div>
+        <div class="learn-desc">Read Heuer's Psychology of Intelligence Analysis · Work through OSINT Curious free course · Practice building one complete subject profile on a public figure · Establish ICHAT workflow · Install ExifTool and test on evidence photos · Set up VirtualBox research environment</div>
+      </div>
+      <div class="learn-time">Month 1</div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-num" style="color:var(--muted)">◉</div>
+      <div>
+        <div class="learn-title">Month 2–3</div>
+        <div class="learn-desc">Deep dive Maltego and Gephi together · Subscribe to Spokeo or BeenVerified if volume justifies it · Participate in a Trace Labs CTF competition · Evaluate Hunchly subscription · Start building the Pinteq Intel custom workspace module · Consider SANS SEC487 when revenue supports it</div>
+      </div>
+      <div class="learn-time">Month 2–3</div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+function filterCards(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.resource-card, .mi-card, .learn-card, .workflow-step').forEach(card => {
+    const text = (card.dataset.search || '') + ' ' + card.innerText.toLowerCase();
+    card.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+}
+
+// Nav active state on scroll
+const sections = ['people','digital','comms','financial','michigan','workspace','framework','dorking','workflow','priority'];
+const navItems = document.querySelectorAll('.nav-item');
+
+window.addEventListener('scroll', () => {
+  const y = window.scrollY + 100;
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (y >= el.offsetTop && y < el.offsetTop + el.offsetHeight) {
+      navItems.forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

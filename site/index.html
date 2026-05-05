@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pinteq | Operational Intelligence & Workflow Systems</title>
+<meta name="description" content="Pinteq delivers investigative intelligence, workflow systems, and analytical reporting for legal, corporate, and operational teams.">
+<link rel="canonical" href="https://pinteq.co/">
+<meta property="og:site_name" content="pinteq">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pinteq.co/">
+<meta property="og:title" content="pinteq | Operational Intelligence & Workflow Systems">
+<meta property="og:description" content="Investigative intelligence, workflow systems, and analytical reporting delivered as finished products.">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  --ink: #101117;
+  --paper: #f6f4ef;
+  --muted: #6b6d74;
+  --line: #d8d3c8;
+  --blue: #315f9f;
+  --green: #315f4c;
+  --gold: #a67b2d;
+  --white: #fffdfa;
+  --mono: "DM Mono", monospace;
+  --sans: "Instrument Sans", sans-serif;
+  --serif: "Instrument Serif", serif;
+}
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.5;
+}
+a { color: inherit; }
+.wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+.nav {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.mark {
+  font-family: var(--mono);
+  font-size: 0.86rem;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+}
+.mark span { color: var(--blue); }
+.nav-links { display: flex; align-items: center; gap: 22px; font-size: 0.9rem; color: var(--muted); }
+.nav-links a { text-decoration: none; }
+.nav-links a:hover { color: var(--ink); }
+.hero {
+  min-height: calc(100svh - 72px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
+  align-items: center;
+  gap: 56px;
+  padding: 72px 0 48px;
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 20px;
+}
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(4rem, 9vw, 8.5rem);
+  font-weight: 400;
+  line-height: 0.86;
+  letter-spacing: 0;
+  margin: 0 0 26px;
+}
+.lead {
+  max-width: 620px;
+  font-size: clamp(1.1rem, 2.1vw, 1.45rem);
+  color: #34363d;
+  margin: 0 0 32px;
+}
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--white);
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.button.secondary { background: transparent; color: var(--ink); }
+.signal {
+  border: 1px solid var(--line);
+  background: var(--white);
+  padding: 22px;
+}
+.signal-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.map {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.node {
+  min-height: 118px;
+  border: 1px solid var(--line);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.node strong { font-size: 1rem; font-weight: 600; }
+.node span { color: var(--muted); font-size: 0.88rem; }
+.node:nth-child(1) { border-top: 4px solid var(--blue); }
+.node:nth-child(2) { border-top: 4px solid var(--green); }
+.node:nth-child(3) { border-top: 4px solid var(--gold); }
+.node:nth-child(4) { border-top: 4px solid var(--ink); }
+section { padding: 72px 0; border-top: 1px solid var(--line); }
+.section-title {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.service h2 {
+  font-family: var(--serif);
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1;
+  margin: 0 0 14px;
+}
+.service p { margin: 0; color: #44464d; }
+.process {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.step { background: var(--paper); padding: 22px; min-height: 172px; }
+.step-num {
+  font-family: var(--mono);
+  color: var(--blue);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 42px;
+}
+.step h3 { margin: 0 0 10px; font-size: 1rem; }
+.step p { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.contact {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 32px;
+}
+.contact h2 {
+  font-family: var(--serif);
+  font-size: clamp(2.6rem, 6vw, 5.25rem);
+  font-weight: 400;
+  line-height: 0.95;
+  margin: 0;
+}
+.email {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 4px;
+}
+footer {
+  padding: 24px 0 40px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@media (max-width: 860px) {
+  .nav-links { gap: 14px; font-size: 0.82rem; }
+  .hero, .contact { grid-template-columns: 1fr; }
+  .hero { min-height: auto; padding-top: 54px; }
+  .services, .process { grid-template-columns: 1fr; }
+  .map { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .nav { align-items: flex-start; flex-direction: column; gap: 12px; padding: 18px 0; }
+  .nav-links { flex-wrap: wrap; }
+  h1 { font-size: 4rem; }
+  section { padding: 52px 0; }
+}
+</style>
+</head>
+<body>
+<header class="wrap nav">
+  <div class="mark"><span>|</span> pinteq</div>
+  <nav class="nav-links" aria-label="Primary navigation">
+    <a href="#services">Services</a>
+    <a href="#process">Process</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <section class="wrap hero" aria-labelledby="hero-title">
+    <div>
+      <div class="eyebrow">Operational intelligence & workflow systems</div>
+      <h1 id="hero-title">pinteq</h1>
+      <p class="lead">Pinteq turns scattered information into finished intelligence, working systems, and client-ready reporting for legal, corporate, and operational teams.</p>
+      <div class="actions">
+        <a class="button" href="mailto:matt@pinteq.co">Start a conversation</a>
+        <a class="button secondary" href="#services">View services</a>
+      </div>
+    </div>
+    <div class="signal" aria-label="Pinteq operating model">
+      <div class="signal-head">
+        <span>Information formed</span>
+        <span>May 2026</span>
+      </div>
+      <div class="map">
+        <div class="node"><strong>Investigate</strong><span>OSINT, public records, subject profiles, relationship mapping.</span></div>
+        <div class="node"><strong>Systemize</strong><span>Intake, normalization, automations, databases, integrations.</span></div>
+        <div class="node"><strong>Analyze</strong><span>Timelines, evidence gaps, case summaries, decision support.</span></div>
+        <div class="node"><strong>Deliver</strong><span>Finished reports, configured tools, repeatable workflows.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="wrap">
+      <div class="section-title">Services</div>
+      <div class="services">
+        <article class="service">
+          <h2>Investigative intelligence</h2>
+          <p>Open source research, public records review, digital footprint analysis, and structured subject reporting.</p>
+        </article>
+        <article class="service">
+          <h2>Systems & software</h2>
+          <p>Purpose-built intake pipelines, document normalization, workflow automations, and application development.</p>
+        </article>
+        <article class="service">
+          <h2>Case analysis & reporting</h2>
+          <p>Witness briefs, chronology construction, prosecution theory mapping, and client-ready analytical deliverables.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="wrap">
+      <div class="section-title">Process</div>
+      <div class="process">
+        <article class="step"><div class="step-num">01</div><h3>Define the outcome</h3><p>Identify the exact operational decision or deliverable the work must support.</p></article>
+        <article class="step"><div class="step-num">02</div><h3>Gather and normalize</h3><p>Collect source material, clean the structure, and preserve traceability.</p></article>
+        <article class="step"><div class="step-num">03</div><h3>Build the working form</h3><p>Turn information into a report, workflow, system, database, or repeatable process.</p></article>
+        <article class="step"><div class="step-num">04</div><h3>Hand over usable output</h3><p>Deliver something the client can use immediately, with the next action made clear.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap contact">
+      <h2>Information, formed for action.</h2>
+      <a class="email" href="mailto:matt@pinteq.co">matt@pinteq.co</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  Pinteq LLC · Michigan · pinteq.co
+</footer>
+</body>
+</html>

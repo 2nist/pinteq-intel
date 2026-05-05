@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B4 · Witness Intelligence Brief · Pinteq</title>
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #14161f;
+  --surface:  #1d2030;
+  --card:     #242738;
+  --border:   #2e3248;
+  --gold:     #c9a84c;
+  --gold-dim: #8a6e2e;
+  --text:     #dde1ef;
+  --muted:    #7a7f9a;
+  --red:      #e05252;
+  --green:    #4caf6e;
+  --blue:     #4c8fe0;
+  --orange:   #e09b4c;
+  --purple:   #9b4ce0;
+  --sidebar-w: 260px;
+  --osint-w:  240px;
+  --topbar-h: 52px;
+  --font:     'Segoe UI', system-ui, sans-serif;
+  --mono:     'Cascadia Mono', 'Consolas', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13.5px;
+  line-height: 1.55;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── Top Bar ── */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: #0f111a;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 100;
+  user-select: none;
+}
+#topbar .brand {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+#topbar .case-info {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+#topbar .case-info span { color: var(--text); }
+#topbar .actions { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font);
+  transition: filter 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn-gold   { background: var(--gold);   color: #0f111a; }
+.btn-ghost  { background: var(--card);   color: var(--text); border: 1px solid var(--border); }
+.btn-red    { background: var(--red);    color: #fff; }
+.btn-green  { background: var(--green);  color: #fff; }
+.btn-blue   { background: var(--blue);   color: #fff; }
+
+#save-status {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+#save-status.saved { color: var(--green); }
+#save-status.saving { color: var(--orange); }
+#save-status.error  { color: var(--red); }
+
+/* ── Layout ── */
+#layout {
+  display: flex;
+  height: 100vh;
+  padding-top: var(--topbar-h);
+}
+
+/* ── Left Sidebar ── */
+#sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#sidebar-head {
+  padding: 12px 10px 8px;
+  border-bottom: 1px solid var(--border);
+}
+#sidebar-head .sh-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+#witness-search {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 5px 8px;
+  font-family: var(--font);
+  outline: none;
+}
+#witness-search:focus { border-color: var(--gold-dim); }
+
+#filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.filter-btn {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--muted);
+  font-family: var(--font);
+}
+.filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
+
+#witness-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+.witness-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.1s;
+}
+.witness-item:hover { background: rgba(255,255,255,0.04); }
+.witness-item.active {
+  background: rgba(201,168,76,0.08);
+  border-left-color: var(--gold);
+}
+.witness-item.hidden { display: none; }
+.wi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.wi-name { font-size: 12.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.wi-role { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wi-brief-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; display: none; }
+.wi-brief-dot.has-brief { display: block; }
+
+.tag-defendant { background: #7b1515; }
+.tag-victim    { background: #3a3a3a; }
+.tag-star      { background: #8b1a1a; }
+.tag-civilian  { background: var(--blue); }
+.tag-leo       { background: #1a4a8b; }
+.tag-forensic  { background: var(--purple); }
+.tag-attorney  { background: #1a6b3a; }
+
+#sidebar-foot {
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Main Content ── */
+#main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Brief Header ── */
+#brief-header {
+  background: linear-gradient(135deg, #1d2030, #1a1c28);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+#brief-header .bh-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+#brief-header .bh-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+#brief-header .bh-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+#brief-header .bh-role {
+  font-size: 13px;
+  color: var(--muted);
+}
+.bh-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bh-badge.wp { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--gold-dim); }
+#brief-header .bh-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.bh-field label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.bh-field input, .bh-field select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 5px 8px;
+  font-family: var(--font);
+  outline: none;
+}
+.bh-field input:focus, .bh-field select:focus { border-color: var(--gold-dim); }
+
+/* ── Sections ── */
+.brief-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.section-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  background: rgba(201,168,76,0.1);
+  border: 1px solid var(--gold-dim);
+  padding: 1px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  text-transform: uppercase;
+  flex: 1;
+}
+.section-toggle { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+.section-toggle.collapsed { transform: rotate(-90deg); }
+.section-body { padding: 16px; }
+.section-body.collapsed { display: none; }
+
+/* ── Form fields ── */
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.field-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.field-grid.cols-1 { grid-template-columns: 1fr; }
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-row.full { grid-column: 1 / -1; }
+.field-row label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.field-row input,
+.field-row select,
+.field-row textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 7px 10px;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+.field-row input:focus,
+.field-row select:focus,
+.field-row textarea:focus { border-color: var(--gold-dim); background: rgba(201,168,76,0.03); }
+.field-row select option { background: var(--card); }
+textarea { min-height: 80px; }
+textarea.tall { min-height: 120px; }
+textarea.summary { min-height: 100px; font-size: 13.5px; line-height: 1.6; }
+
+/* ── Credibility rating ── */
+#cred-rating {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.cred-btn {
+  padding: 6px 16px;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font);
+  letter-spacing: 0.06em;
+  background: var(--surface);
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.cred-btn[data-val="HIGH"].sel    { background: rgba(76,175,110,0.15); border-color: var(--green); color: var(--green); }
+.cred-btn[data-val="MODERATE"].sel { background: rgba(224,155,76,0.15); border-color: var(--orange); color: var(--orange); }
+.cred-btn[data-val="LOW"].sel     { background: rgba(224,82,82,0.15);  border-color: var(--red);    color: var(--red); }
+.cred-btn[data-val="UNKNOWN"].sel { background: rgba(122,127,154,0.15); border-color: var(--muted); color: var(--muted); }
+
+/* ── Dynamic tables ── */
+.dyn-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.dyn-table th {
+  background: rgba(0,0,0,0.3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 7px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.dyn-table td {
+  padding: 5px 5px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: top;
+}
+.dyn-table tr:last-child td { border-bottom: none; }
+.dyn-table input,
+.dyn-table textarea,
+.dyn-table select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 12.5px;
+  padding: 5px 7px;
+  font-family: var(--font);
+  outline: none;
+  resize: vertical;
+}
+.dyn-table input:focus,
+.dyn-table textarea:focus,
+.dyn-table select:focus { border-color: var(--gold-dim); }
+.dyn-table textarea { min-height: 60px; }
+.dyn-table .del-row {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font);
+}
+.dyn-table .del-row:hover { color: var(--red); background: rgba(224,82,82,0.1); }
+.add-row-btn {
+  font-size: 11.5px;
+  color: var(--gold);
+  background: none;
+  border: 1px dashed var(--gold-dim);
+  border-radius: 5px;
+  padding: 5px 14px;
+  cursor: pointer;
+  font-family: var(--font);
+  width: 100%;
+  text-align: center;
+  transition: background 0.15s;
+}
+.add-row-btn:hover { background: rgba(201,168,76,0.07); }
+
+/* Flag select options */
+.flag-none   { color: var(--muted); }
+.flag-contra { color: var(--red); }
+
+/* ── Source log badges ── */
+.priv-select option { background: var(--card); }
+
+/* ── Outstanding investigation ── */
+#outstanding-list { display: flex; flex-direction: column; gap: 6px; }
+.outstanding-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.outstanding-item input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 6px 10px;
+  font-family: var(--font);
+  outline: none;
+}
+.outstanding-item input:focus { border-color: var(--gold-dim); }
+
+/* ── Analyst cert ── */
+#analyst-cert {
+  background: rgba(201,168,76,0.05);
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+#analyst-cert .cert-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+#analyst-cert p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* ── No witness selected ── */
+#no-witness {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 12px;
+  color: var(--muted);
+  text-align: center;
+  min-height: 60vh;
+}
+#no-witness .nw-icon { font-size: 48px; margin-bottom: 8px; }
+#no-witness h2 { font-size: 18px; font-weight: 600; color: var(--text); }
+#no-witness p { font-size: 13px; max-width: 320px; }
+
+/* ── OSINT Sidebar ── */
+#osint-panel {
+  width: var(--osint-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+#osint-panel .op-head {
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  text-transform: uppercase;
+  user-select: none;
+}
+.osint-group {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.osint-group-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.osint-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 12px;
+  transition: background 0.12s;
+  margin-bottom: 3px;
+  cursor: pointer;
+  user-select: none;
+}
+.osint-link:hover { background: rgba(255,255,255,0.06); color: var(--gold); }
+.osint-link .ol-icon { font-size: 14px; flex-shrink: 0; }
+.osint-link .ol-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.osint-link .ol-new { font-size: 9px; color: var(--muted); }
+
+#osint-name-display {
+  padding: 10px 12px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+#osint-name-display span { color: var(--gold); display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+}
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal h3 { font-size: 15px; font-weight: 700; color: var(--gold); }
+.modal label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+.modal input, .modal select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--font);
+  outline: none;
+  margin-top: 4px;
+}
+.modal input:focus, .modal select:focus { border-color: var(--gold-dim); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+/* ── Print ── */
+@media print {
+  @page { margin: 1.8cm; size: letter; }
+
+  body { background: #fff; color: #000; font-size: 11pt; overflow: visible; height: auto; }
+  #topbar, #sidebar, #osint-panel, .actions, .add-row-btn, .del-row,
+  #filter-row, #witness-search, #sidebar-foot, .section-head .section-toggle { display: none !important; }
+  #layout { display: block; padding-top: 0; height: auto; }
+  #main { display: block; padding: 0; overflow: visible; }
+  .brief-section { border: 1px solid #ccc; border-radius: 0; page-break-inside: avoid; margin-bottom: 12pt; }
+  .section-head { background: #f0f0f0; cursor: default; }
+  .section-num { border: 1px solid #999; color: #000; background: #e0e0e0; }
+  .section-title { color: #000; }
+  .section-body.collapsed { display: block !important; }
+  .dyn-table th { background: #e8e8e8; color: #333; }
+  .dyn-table input, .dyn-table textarea, .dyn-table select,
+  .field-row input, .field-row textarea, .field-row select,
+  .bh-field input, .bh-field select, .outstanding-item input {
+    background: #fff !important; border: 1px solid #ddd !important; color: #000 !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  #brief-header { background: #f8f8f8; border: 2px solid #333; border-radius: 0; }
+  #brief-header .bh-name { color: #000; }
+  #brief-header .bh-title { color: #555; }
+  #brief-header .bh-role { color: #444; }
+  #brief-header .bh-meta { grid-template-columns: repeat(4, 1fr); }
+  #analyst-cert { background: #f8f8f8; border: 1px solid #bbb; }
+  .cred-btn { border: 2px solid #ccc; color: #333; background: #fff; }
+  .cred-btn.sel { border-color: #333; font-weight: 900; }
+  .print-watermark {
+    display: block !important;
+    text-align: center;
+    font-size: 9pt;
+    color: #999;
+    margin-top: 24pt;
+    border-top: 1px solid #ddd;
+    padding-top: 8pt;
+  }
+}
+.print-watermark { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ── -->
+<div id="topbar">
+  <div class="brand">B4 · Witness Intelligence Brief</div>
+  <div class="case-info" id="topbar-case">Loading...</div>
+  <div id="save-status">—</div>
+  <div class="actions">
+    <button class="btn btn-ghost" onclick="openNewWitnessModal()">+ Witness</button>
+    <button class="btn btn-ghost" onclick="window.print()">⎙ Print</button>
+    <button class="btn btn-gold" id="save-btn" onclick="saveBrief()">Save Brief</button>
+  </div>
+</div>
+
+<!-- ── Layout ── -->
+<div id="layout">
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div id="sidebar-head">
+      <div class="sh-label">Witness Roster</div>
+      <input id="witness-search" type="search" placeholder="Search witnesses…" oninput="filterWitnesses()">
+      <div id="filter-row">
+        <button class="filter-btn active" data-tag="all" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" data-tag="civilian" onclick="setFilter('civilian',this)">Civilian</button>
+        <button class="filter-btn" data-tag="leo" onclick="setFilter('leo',this)">LEO</button>
+        <button class="filter-btn" data-tag="forensic" onclick="setFilter('forensic',this)">Forensic</button>
+        <button class="filter-btn" data-tag="attorney" onclick="setFilter('attorney',this)">Attorney</button>
+        <button class="filter-btn" data-tag="star" onclick="setFilter('star',this)">⭐ Star</button>
+      </div>
+    </div>
+
+    <div id="witness-list"></div>
+
+    <div id="sidebar-foot">
+      <button class="btn btn-ghost" style="width:100%;font-size:11px;" onclick="openNewWitnessModal()">+ Add Witness</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+
+    <!-- No witness selected -->
+    <div id="no-witness">
+      <div class="nw-icon">📋</div>
+      <h2>Select a Witness</h2>
+      <p>Choose a witness from the roster to open or create their B4 Intelligence Brief.</p>
+    </div>
+
+    <!-- Brief form (hidden until witness selected) -->
+    <div id="brief-form" style="display:none">
+
+      <!-- Header -->
+      <div id="brief-header">
+        <div class="bh-top">
+          <div>
+            <div class="bh-title">B4 · Witness Intelligence Brief</div>
+            <div class="bh-name" id="bh-witness-name">—</div>
+            <div class="bh-role" id="bh-witness-role"></div>
+          </div>
+          <div>
+            <div class="bh-badge wp">Work Product · Privileged</div>
+          </div>
+        </div>
+        <div class="bh-meta">
+          <div class="bh-field">
+            <label>Matter ID</label>
+            <input id="hdr-matter" type="text" placeholder="KENT-25-7082">
+          </div>
+          <div class="bh-field">
+            <label>Case Name</label>
+            <input id="hdr-case" type="text" placeholder="People v. West">
+          </div>
+          <div class="bh-field">
+            <label>Prepared By</label>
+            <input id="hdr-prepby" type="text" placeholder="Your Name · Pinteq LLC">
+          </div>
+          <div class="bh-field">
+            <label>Prepared For</label>
+            <input id="hdr-prepfor" type="text" placeholder="Attorney Name, Esq.">
+          </div>
+          <div class="bh-field">
+            <label>Report Version</label>
+            <input id="hdr-version" type="text" placeholder="v1.0">
+          </div>
+          <div class="bh-field">
+            <label>Report Date</label>
+            <input id="hdr-date" type="date">
+          </div>
+          <div class="bh-field">
+            <label>Classification</label>
+            <select id="hdr-class">
+              <option>Work Product · Privileged</option>
+              <option>Attorney-Client Privileged · DO NOT DISTRIBUTE</option>
+              <option>Confidential · Defense Use Only</option>
+            </select>
+          </div>
+          <div class="bh-field">
+            <label>Report #</label>
+            <input id="hdr-reportnum" type="text" placeholder="Auto">
+          </div>
+        </div>
+      </div>
+
+      <!-- S1 — Witness Overview -->
+      <div class="brief-section">
+        <div class="section-head" onclick="toggleSection(this)">
+          <span class="section-num">01</span>
+          <span class="section-title">Witness Overview</span>
+          <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body">
+          <div class="field-grid">
+            <div class="field-row">
+              <label>Role in Case</label>
+              <select id="s1-role">
+                <option value="">Select role…</option>
+                <option>Prosecution witness</option>
+                <option>Star prosecution witness</option>
+                <option>Jailhouse informant</option>
+                <option>Alleged victim</option>
+                <option>Co-defendant</option>
+                <option>Eyewitness</option>
+                <option>Character witness</option>
+                <option>Expert witness</option>
+                <option>Law enforcement officer</option>
+                <option>Forensic analyst</option>
+                <option>Defense witness</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Known Aliases</label>
+              <input id="s1-aliases" type="text" placeholder="List or N/A">
+            </div>
+            <div class="field-row">
+              <label>Date of Birth</label>
+              <input id="s1-dob" type="text" placeholder="DOB or approximate age">
+            </div>
+            <div class="field-row">
+              <label>Current Address</label>
+              <input id="s1-address" type="text" placeholder="Last known address">
+            </div>
+            <div class="field-row">
+              <label>Phone Numbers</label>
+              <input id="s1-phones" type="text" placeholder="Numbers on record">
+            </div>
+            <div class="field-row">
+              <label>Relationship to Client</label>
+              <input id="s1-relationship" type="text" placeholder="Known connection">
+            </div>
+            <div class="field-row">
+              <label>Language</label>
+              <input id="s1-language" type="text" placeholder="English" value="English">
+            </div>
+            <div class="field-row">
+              <label>Source of Inclusion</label>
+              <input id="s1-source" type="text" placeholder="How they entered the case">
+            </div>
+            <div class="field-row full">
+              <label>Criminal History</label>
+              <textarea id="s1-criminal" placeholder="Prior convictions, pending charges, case numbers…"></textarea>
+            </div>
+            <div class="field-row full">
+              <label>Analyst Summary</label>
+              <textarea id="s1-summary" class="summary" placeholder="2–3 sentences: who this person is, why they matter to this case, and your overall assessment of their reliability. This is the first thing the attorney reads. Make it count."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- S2 — Credibility Assessment -->
+      <div class="brief-section">
+        <div class="section-head" onclick="toggleSection(this)">
+          <span class="section-num">02</span>
+          <span class="section-title">Credibility Assessment</span>
+          <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body">
+          <div style="margin-bottom:10px;font-size:11px;color:var(--muted);">Overall Rating</div>
+          <div id="cred-rating">
+            <button class="cred-btn" data-val="HIGH"    onclick="setCredRating('HIGH')">HIGH — Reliable</button>
+            <button class="cred-btn" data-val="MODERATE" onclick="setCredRating('MODERATE')">MODERATE — Verify</button>
+            <button class="cred-btn" data-val="LOW"     onclick="setCredRating('LOW')">LOW — Vulnerable</button>
+            <button class="cred-btn" data-val="UNKNOWN" onclick="setCredRating('UNKNOWN')">UNKNOWN — Insufficient</button>
+          </div>
+          <div class="field-grid" style="margin-top:14px;">
+            <div class="field-row">
+              <label>Assessed By</label>
+              <input id="s2-assessor" type="text" placeholder="Analyst name">
+            </div>
+            <div class="field-row">
+              <label>Assessment Date</label>
+              <input id="s2-date" type="date">
+            </div>
+            <div class="field-row full">
+              <label>Motive to Lie</label>
+              <textarea id="s2-motive" placeholder="Does this witness have a reason to be untruthful? Relationship to prosecution, pending charges, deals offered, personal animus?"></textarea>
+            </div>
+            <div class="field-row full">
+              <label>Prior Dishonesty</label>
+              <textarea id="s2-dishonesty" placeholder="Prior convictions for fraud, perjury, theft, or other crimes of moral turpitude on record?"></textarea>
+            </div>
+            <div class="field-row full">
+              <label>Bias Indicators</label>
+              <textarea id="s2-bias" placeholder="Financial relationship with state? Romantic or family ties to victim or prosecution witness?"></textarea>
+            </div>
+            <div class="field-row full">
+              <label>Consistency History</label>
+              <textarea id="s2-consistency" placeholder="Have they changed their story between initial statement, preliminary hearing, and deposition?"></textarea>
+            </div>
+            <div class="field-row full">
+              <label>OSINT Flags</label>
+              <textarea id="s2-osint" placeholder="Anything found in public records, social media, or database research that bears on credibility?"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- S3 — Statement Record -->
+      <div class="brief-section">
+        <div class="section-head" onclick="toggleSection(this)">
+          <span class="section-num">03</span>
+          <span class="section-title">Statement Record</span>
+          <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body">
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">Every documented statement from this witness, in chronological order. Source type noted per entry. Flags mark entries with cross-reference potential.</p>
+          <table class="dyn-table" id="stmt-table">
+            <thead>
+              <tr>
+                <th style="width:90px">Date</th>
+                <th>Statement Summary</th>
+                <th style="width:140px">Source</th>
+                <th style="width:160px">Flags</th>
+                <th style="width:30px"></th>
+              </tr>
+            </thead>
+            <tbody id="stmt-body"></tbody>
+          </table>
+          <button class="add-row-btn" onclick="addStmtRow()">+ Add Statement</button>
+        </div>
+      </div>
+
+      <!-- S4 — Contradiction Matrix -->
+      <div class="brief-section">
+        <div class="section-head" onclick="toggleSection(this)">
+          <span class="section-num">04</span>
+          <span class="section-title">Contradiction Matrix</span>
+          <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body">
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">Specific conflicts between what this witness said at different times or across different sources. Each row is a usable cross-examination point.</p>
+          <table class="dyn-table" id="contra-table">
+            <thead>
+              <tr>
+                <th style="width:120px">Topic</th>
+                <th>Statement A</th>
+                <th>Statement B</th>
+                <th style="width:140px">Significance</th>
+                <th style="width:30px"></th>
+              </tr>
+            </thead>
+            <tbody id="contra-body"></tbody>
+          </table>
+          <button class="add-row-btn" onclick="addContraRow()">+ Add Contradiction</button>
+        </div>
+      </div>
+
+      <!-- S5 — Cross-Examination Guide -->
+      <div class="brief-section">
+        <div class="section-head" onclick="toggleSection(this)">
+          <span class="section-num">05</span>
+          <span class="section-title">Cross-Examination Guide</span>
+          <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body">
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">Recommended angles for cross. Each row gives the attorney the angle, the evidentiary basis, and the document to confront the witness with. Analytical input — not legal strategy.</p>
+          <table class="dyn-table" id="cross-table">
+            <thead>
+              <tr>
+                <th>Cross-Examination Angle</th>
+                <th>Evidentiary Basis</th>
+                <th style="width:160px">Exhibit / Doc to Use</th>
+                <th style="width:30px"></th>
+              </tr>
+            </thead>
+            <tbody id="cross-body"></tbody>
+          </table>
+          <button class="add-row-btn" onclick="addCrossRow()">+ Add Cross Angle</button>
+        </div>
+      </div>
+
+      <!-- S6 — Outstanding Investigation -->
+      <div class="brief-section">
+        <div class="section-head" onclick="toggleSection(this)">
+          <span class="section-num">06</span>
+          <span class="section-title">Outstanding Investigation</span>
+          <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body">
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">What still needs to be done on this witness before trial. Drives the next work cycle.</p>
+          <div id="outstanding-list"></div>
+          <button class="add-row-btn" style="margin-top:8px;" onclick="addOutstandingItem()">+ Add Open Item</button>
+        </div>
+      </div>
+
+      <!-- S7 — Source Log -->
+      <div class="brief-section">
+        <div class="section-head" onclick="toggleSection(this)">
+          <span class="section-num">07</span>
+          <span class="section-title">Source Log</span>
+          <span class="section-toggle">▼</span>
+        </div>
+        <div class="section-body">
+          <p style="font-size:11.5px;color:var(--muted);margin-bottom:12px;">Every source referenced in this report. Chain of custody for the intelligence in this document.</p>
+          <table class="dyn-table" id="source-table">
+            <thead>
+              <tr>
+                <th style="width:60px">Ref</th>
+                <th style="width:80px">Type</th>
+                <th>Description</th>
+                <th style="width:100px">Date Accessed</th>
+                <th style="width:110px">Privilege</th>
+                <th style="width:30px"></th>
+              </tr>
+            </thead>
+            <tbody id="source-body"></tbody>
+          </table>
+          <button class="add-row-btn" onclick="addSourceRow()">+ Add Source</button>
+        </div>
+      </div>
+
+      <!-- Analyst Certification -->
+      <div id="analyst-cert">
+        <div class="cert-label">Analyst Certification</div>
+        <p>This report was prepared under the supervision of the attorney of record and constitutes attorney work product. All findings are sourced as indicated. Facts and assessments are distinguished throughout. This report does not constitute legal advice.</p>
+        <div class="field-grid cols-3">
+          <div class="field-row">
+            <label>Analyst Name</label>
+            <input id="cert-name" type="text" placeholder="Your Name">
+          </div>
+          <div class="field-row">
+            <label>Organization</label>
+            <input id="cert-org" type="text" placeholder="Pinteq LLC">
+          </div>
+          <div class="field-row">
+            <label>Certification Date</label>
+            <input id="cert-date" type="date">
+          </div>
+        </div>
+      </div>
+
+      <div class="print-watermark">
+        Work Product · Attorney-Client Privileged · Prepared by Pinteq LLC · Defense Use Only · Do Not Distribute
+      </div>
+
+    </div><!-- /brief-form -->
+  </div><!-- /main -->
+
+  <!-- OSINT Sidebar -->
+  <div id="osint-panel">
+    <div class="op-head">OSINT Launch Links</div>
+    <div id="osint-name-display">
+      Select a witness
+      <span>Links auto-populate by name</span>
+    </div>
+
+    <div class="osint-group">
+      <div class="osint-group-label">General Search</div>
+      <a class="osint-link" id="ol-google" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🔍</span><span class="ol-label">Google Search</span>
+      </a>
+      <a class="osint-link" id="ol-gnews" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">📰</span><span class="ol-label">Google News</span>
+      </a>
+    </div>
+
+    <div class="osint-group">
+      <div class="osint-group-label">Court Records</div>
+      <a class="osint-link" id="ol-courtlistener" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">⚖️</span><span class="ol-label">CourtListener</span>
+      </a>
+      <a class="osint-link" id="ol-pacer" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🏛️</span><span class="ol-label">PACER (Federal)</span>
+      </a>
+      <a class="osint-link" href="https://www.courts.michigan.gov/courts/trial-courts/court-programs/micourtgov/" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🏛️</span><span class="ol-label">MiCOURT (MI State)</span>
+      </a>
+      <a class="osint-link" href="https://ichat.apps.lara.state.mi.us/" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🔒</span><span class="ol-label">ICHAT (MI Criminal)</span>
+      </a>
+      <a class="osint-link" id="ol-mn-court" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🏛️</span><span class="ol-label">MN Court Records</span>
+        <span class="ol-new">↗</span>
+      </a>
+    </div>
+
+    <div class="osint-group">
+      <div class="osint-group-label">People Search</div>
+      <a class="osint-link" id="ol-spokeo" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">👤</span><span class="ol-label">Spokeo</span>
+      </a>
+      <a class="osint-link" id="ol-whitepages" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">📖</span><span class="ol-label">White Pages</span>
+      </a>
+      <a class="osint-link" id="ol-beenverified" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">✅</span><span class="ol-label">BeenVerified</span>
+      </a>
+      <a class="osint-link" id="ol-fastpeople" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🔎</span><span class="ol-label">FastPeopleSearch</span>
+      </a>
+    </div>
+
+    <div class="osint-group">
+      <div class="osint-group-label">Social Media</div>
+      <a class="osint-link" id="ol-facebook" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">📘</span><span class="ol-label">Facebook</span>
+      </a>
+      <a class="osint-link" id="ol-linkedin" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">💼</span><span class="ol-label">LinkedIn</span>
+      </a>
+      <a class="osint-link" id="ol-instagram" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">📷</span><span class="ol-label">Instagram Search</span>
+      </a>
+    </div>
+
+    <div class="osint-group">
+      <div class="osint-group-label">Prison / DOC</div>
+      <a class="osint-link" href="https://mdocweb.state.mi.us/otis2/otis2.aspx" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🔐</span><span class="ol-label">MI DOC (OTIS)</span>
+      </a>
+      <a class="osint-link" href="https://appsdoc.state.mn.us/pub/app/offender" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🔐</span><span class="ol-label">MN DOC Offender</span>
+      </a>
+      <a class="osint-link" id="ol-vine" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🔐</span><span class="ol-label">VINELink Custody</span>
+      </a>
+    </div>
+
+    <div class="osint-group">
+      <div class="osint-group-label">Property / Business</div>
+      <a class="osint-link" id="ol-misos" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🏢</span><span class="ol-label">MI SOS Business</span>
+      </a>
+      <a class="osint-link" href="https://bs.musketgov.com/" target="_blank" rel="noopener noreferrer">
+        <span class="ol-icon">🗂️</span><span class="ol-label">Muskegon County Records</span>
+      </a>
+    </div>
+
+  </div><!-- /osint-panel -->
+</div><!-- /layout -->
+
+<!-- New Witness Modal -->
+<div id="new-witness-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>Add Witness</h3>
+    <div>
+      <label>Full Legal Name *</label>
+      <input id="new-name" type="text" placeholder="First Last">
+    </div>
+    <div>
+      <label>Role in Case</label>
+      <input id="new-role" type="text" placeholder="Civilian Witness / LEO / etc.">
+    </div>
+    <div>
+      <label>Category</label>
+      <select id="new-tag">
+        <option value="civilian">Civilian</option>
+        <option value="leo">Law Enforcement (LEO)</option>
+        <option value="forensic">Forensic / Expert</option>
+        <option value="attorney">Attorney</option>
+        <option value="star">Star Prosecution Witness</option>
+        <option value="victim">Victim</option>
+        <option value="defendant">Defendant</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="addWitness()">Add Witness</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── State ────────────────────────────────────────────────────────────────────
+let witnesses = [];
+let briefs    = {};   // cache
+let activeId  = null;
+let caseInfo  = {};
+let filterTag = 'all';
+let saveTimer = null;
+let briefsDirty = false;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    await Promise.all([ loadCase(), loadWitnesses() ]);
+    renderSidebar();
+    setDefaultDate();
+  } catch(e) {
+    console.error('Init failed:', e);
+    document.getElementById('witness-list').innerHTML =
+      `<div style="padding:12px;color:var(--red);font-size:12px;">⚠ Could not load witnesses.<br>Make sure the server is running on port 3001.<br><br>${e.message}</div>`;
+  }
+}
+
+async function loadCase() {
+  try {
+    const r = await fetch('/api/case');
+    caseInfo = await r.json();
+    document.getElementById('topbar-case').innerHTML =
+      `<span>${caseInfo.case_name}</span> · ${caseInfo.matter_id} · ${caseInfo.case_no}`;
+    document.getElementById('hdr-matter').value = caseInfo.matter_id || '';
+    document.getElementById('hdr-case').value   = caseInfo.case_name || '';
+  } catch(e) {
+    document.getElementById('topbar-case').textContent = 'People v. West · KENT-25-7082';
+  }
+}
+
+async function loadWitnesses() {
+  const r = await fetch('/api/witnesses');
+  if (!r.ok) throw new Error(`/api/witnesses returned ${r.status}`);
+  witnesses = await r.json();
+  if (!Array.isArray(witnesses)) throw new Error('Unexpected response from /api/witnesses');
+}
+
+function setDefaultDate() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('hdr-date').value  = today;
+  document.getElementById('cert-date').value = today;
+  document.getElementById('s2-date').value   = today;
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('witness-list');
+  const q    = document.getElementById('witness-search').value.toLowerCase();
+  list.innerHTML = '';
+
+  for (const w of witnesses) {
+    const matchTag  = filterTag === 'all' || w.role_tag === filterTag;
+    const matchQ    = !q || w.full_name.toLowerCase().includes(q) || (w.role||'').toLowerCase().includes(q);
+    const hasBrief  = briefs[w.id] && Object.keys(briefs[w.id]).length > 1;
+
+    const el = document.createElement('div');
+    el.className = `witness-item${activeId === w.id ? ' active' : ''}${(!matchTag||!matchQ) ? ' hidden' : ''}`;
+    el.dataset.id = w.id;
+    el.onclick = () => selectWitness(w.id);
+
+    el.innerHTML = `
+      <span class="wi-dot tag-${w.role_tag}"></span>
+      <span class="wi-brief-dot${hasBrief ? ' has-brief' : ''}"></span>
+      <span class="wi-name">${w.full_name}</span>
+    `;
+    list.appendChild(el);
+  }
+}
+
+function filterWitnesses() { renderSidebar(); }
+
+function setFilter(tag, btn) {
+  filterTag = tag;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSidebar();
+}
+
+// ── Witness select ────────────────────────────────────────────────────────────
+async function selectWitness(id) {
+  if (activeId === id) return;
+  if (activeId !== null && briefsDirty) await saveBrief(false);
+
+  activeId = id;
+  briefsDirty = false;
+
+  const w = witnesses.find(x => x.id === id);
+  if (!w) return;
+
+  // Load brief
+  let brief = briefs[id];
+  if (!brief) {
+    const r = await fetch(`/api/brief/${id}`);
+    brief = await r.json();
+    briefs[id] = brief;
+  }
+
+  // Update sidebar highlight
+  document.querySelectorAll('.witness-item').forEach(el => {
+    el.classList.toggle('active', Number(el.dataset.id) === id);
+  });
+
+  // Show form
+  document.getElementById('no-witness').style.display  = 'none';
+  document.getElementById('brief-form').style.display  = 'block';
+
+  // Header
+  document.getElementById('bh-witness-name').textContent = w.full_name;
+  document.getElementById('bh-witness-role').textContent = w.role || '';
+
+  // Populate fields from brief
+  setVal('hdr-matter',  brief.matter_id || caseInfo.matter_id || '');
+  setVal('hdr-case',    brief.case_name || caseInfo.case_name || '');
+  setVal('hdr-prepby',  brief.prepared_by  || '');
+  setVal('hdr-prepfor', brief.prepared_for || '');
+  setVal('hdr-version', brief.report_version || 'v1.0');
+  setVal('hdr-date',    brief.report_date  || new Date().toISOString().split('T')[0]);
+  setVal('hdr-class',   brief.classification || 'Work Product · Privileged');
+  setVal('hdr-reportnum', brief.report_num || `B4-${String(id).padStart(3,'0')}`);
+
+  setVal('s1-role',         brief.s1_role || '');
+  setVal('s1-aliases',      brief.s1_aliases || '');
+  setVal('s1-dob',          brief.s1_dob || '');
+  setVal('s1-address',      brief.s1_address || '');
+  setVal('s1-phones',       brief.s1_phones || '');
+  setVal('s1-relationship', brief.s1_relationship || '');
+  setVal('s1-language',     brief.s1_language || 'English');
+  setVal('s1-source',       brief.s1_source || w.source_of_inclusion || '');
+  setVal('s1-criminal',     brief.s1_criminal || '');
+  setVal('s1-summary',      brief.s1_summary || '');
+
+  setCredRating(brief.s2_rating || null);
+  setVal('s2-assessor',    brief.s2_assessor || '');
+  setVal('s2-date',        brief.s2_date || new Date().toISOString().split('T')[0]);
+  setVal('s2-motive',      brief.s2_motive || '');
+  setVal('s2-dishonesty',  brief.s2_dishonesty || '');
+  setVal('s2-bias',        brief.s2_bias || '');
+  setVal('s2-consistency', brief.s2_consistency || '');
+  setVal('s2-osint',       brief.s2_osint || '');
+
+  renderStmtRows(brief.statements || []);
+  renderContraRows(brief.contradictions || []);
+  renderCrossRows(brief.cross_exam || []);
+  renderOutstandingItems(brief.outstanding || []);
+  renderSourceRows(brief.sources || []);
+
+  setVal('cert-name', brief.cert_name || '');
+  setVal('cert-org',  brief.cert_org  || '');
+  setVal('cert-date', brief.cert_date || new Date().toISOString().split('T')[0]);
+
+  // OSINT links
+  updateOsintLinks(w.full_name);
+
+  // Mark dirty on any change
+  document.getElementById('brief-form').oninput = () => { briefsDirty = true; scheduleSave(); };
+
+  // Scroll to top
+  document.getElementById('main').scrollTo(0, 0);
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.tagName === 'SELECT') {
+    for (const opt of el.options) {
+      if (opt.value === val || opt.text === val) { el.value = opt.value; return; }
+    }
+    el.value = '';
+  } else {
+    el.value = val || '';
+  }
+}
+
+// ── Credibility Rating ────────────────────────────────────────────────────────
+function setCredRating(val) {
+  document.querySelectorAll('.cred-btn').forEach(btn => {
+    btn.classList.toggle('sel', btn.dataset.val === val);
+  });
+}
+function getCredRating() {
+  const sel = document.querySelector('.cred-btn.sel');
+  return sel ? sel.dataset.val : null;
+}
+
+// ── Dynamic Tables — Statements ───────────────────────────────────────────────
+function renderStmtRows(rows) {
+  const tbody = document.getElementById('stmt-body');
+  tbody.innerHTML = '';
+  if (!rows.length) addStmtRow();
+  else rows.forEach(r => addStmtRow(r));
+}
+
+function addStmtRow(data={}) {
+  const tbody = document.getElementById('stmt-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="date" value="${esc(data.date||'')}"></td>
+    <td><textarea rows="2">${esc(data.summary||'')}</textarea></td>
+    <td>
+      <select>
+        <option value="Source A · Police report"${data.source==='Source A · Police report'?' selected':''}>Source A · Police report</option>
+        <option value="Source A · Prelim transcript"${data.source==='Source A · Prelim transcript'?' selected':''}>Source A · Prelim transcript</option>
+        <option value="Source A · Deposition"${data.source==='Source A · Deposition'?' selected':''}>Source A · Deposition</option>
+        <option value="Source B · Field investigation"${data.source==='Source B · Field investigation'?' selected':''}>Source B · Field investigation</option>
+        <option value="Source C · Database record"${data.source==='Source C · Database record'?' selected':''}>Source C · Database record</option>
+        <option value="Source D · Social media"${data.source==='Source D · Social media'?' selected':''}>Source D · Social media</option>
+        <option value="Source D · Facebook"${data.source==='Source D · Facebook'?' selected':''}>Source D · Facebook</option>
+        <option value="Source E · Phone records"${data.source==='Source E · Phone records'?' selected':''}>Source E · Phone records</option>
+        <option value="Other"${data.source==='Other'?' selected':''}>Other</option>
+      </select>
+    </td>
+    <td>
+      <select>
+        <option value=""${!data.flag?' selected':''}>—</option>
+        <option value="⚠ Contradicts prior statement"${data.flag==='⚠ Contradicts prior statement'?' selected':''}>⚠ Contradicts prior</option>
+        <option value="⚠ New detail not in prior statements"${data.flag==='⚠ New detail not in prior statements'?' selected':''}>⚠ New detail</option>
+        <option value="⚠ Conflicts with sworn testimony"${data.flag==='⚠ Conflicts with sworn testimony'?' selected':''}>⚠ Conflicts sworn</option>
+        <option value="⚠ Requires corroboration"${data.flag==='⚠ Requires corroboration'?' selected':''}>⚠ Needs corroboration</option>
+        <option value="★ Key statement"${data.flag==='★ Key statement'?' selected':''}>★ Key statement</option>
+      </select>
+    </td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function getStmtRows() {
+  return Array.from(document.querySelectorAll('#stmt-body tr')).map(tr => {
+    const cells = tr.querySelectorAll('input, textarea, select');
+    return { date: cells[0].value, summary: cells[1].value, source: cells[2].value, flag: cells[3].value };
+  });
+}
+
+// ── Dynamic Tables — Contradictions ──────────────────────────────────────────
+function renderContraRows(rows) {
+  const tbody = document.getElementById('contra-body');
+  tbody.innerHTML = '';
+  if (!rows.length) addContraRow();
+  else rows.forEach(r => addContraRow(r));
+}
+
+function addContraRow(data={}) {
+  const tbody = document.getElementById('contra-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${esc(data.topic||'')}" placeholder="Topic…"></td>
+    <td><textarea rows="2" placeholder="Statement A…">${esc(data.stmt_a||'')}</textarea></td>
+    <td><textarea rows="2" placeholder="Statement B…">${esc(data.stmt_b||'')}</textarea></td>
+    <td><textarea rows="2" placeholder="Significance / impeachment value…">${esc(data.significance||'')}</textarea></td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function getContraRows() {
+  return Array.from(document.querySelectorAll('#contra-body tr')).map(tr => {
+    const cells = tr.querySelectorAll('input, textarea');
+    return { topic: cells[0].value, stmt_a: cells[1].value, stmt_b: cells[2].value, significance: cells[3].value };
+  });
+}
+
+// ── Dynamic Tables — Cross-Exam ───────────────────────────────────────────────
+function renderCrossRows(rows) {
+  const tbody = document.getElementById('cross-body');
+  tbody.innerHTML = '';
+  if (!rows.length) addCrossRow();
+  else rows.forEach(r => addCrossRow(r));
+}
+
+function addCrossRow(data={}) {
+  const tbody = document.getElementById('cross-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><textarea rows="2" placeholder="Cross angle…">${esc(data.angle||'')}</textarea></td>
+    <td><textarea rows="2" placeholder="Evidentiary basis…">${esc(data.basis||'')}</textarea></td>
+    <td><input type="text" value="${esc(data.exhibit||'')}" placeholder="Report p.4 · Transcript p.12…"></td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function getCrossRows() {
+  return Array.from(document.querySelectorAll('#cross-body tr')).map(tr => {
+    const cells = tr.querySelectorAll('textarea, input');
+    return { angle: cells[0].value, basis: cells[1].value, exhibit: cells[2].value };
+  });
+}
+
+// ── Outstanding Items ─────────────────────────────────────────────────────────
+function renderOutstandingItems(items) {
+  const list = document.getElementById('outstanding-list');
+  list.innerHTML = '';
+  if (!items.length) addOutstandingItem();
+  else items.forEach(text => addOutstandingItem(text));
+}
+
+function addOutstandingItem(text='') {
+  const list = document.getElementById('outstanding-list');
+  const div  = document.createElement('div');
+  div.className = 'outstanding-item';
+  div.innerHTML = `
+    <input type="text" value="${esc(text)}" placeholder="FOIA pending · Additional OSINT · Follow-up action…">
+    <button class="del-row" onclick="this.closest('.outstanding-item').remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function getOutstandingItems() {
+  return Array.from(document.querySelectorAll('#outstanding-list .outstanding-item input'))
+    .map(el => el.value)
+    .filter(v => v.trim());
+}
+
+// ── Dynamic Tables — Sources ──────────────────────────────────────────────────
+function renderSourceRows(rows) {
+  const tbody = document.getElementById('source-body');
+  tbody.innerHTML = '';
+  if (!rows.length) addSourceRow();
+  else rows.forEach(r => addSourceRow(r));
+}
+
+function addSourceRow(data={}) {
+  const tbody = document.getElementById('source-body');
+  const refNum = tbody.rows.length + 1;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${esc(data.ref||`S-${String(refNum).padStart(3,'0')}`)}" style="width:50px"></td>
+    <td>
+      <select>
+        <option${data.type==='Source A'?' selected':''}>Source A</option>
+        <option${data.type==='Source B'?' selected':''}>Source B</option>
+        <option${data.type==='Source C'?' selected':''}>Source C</option>
+        <option${data.type==='Source D'?' selected':''}>Source D</option>
+        <option${data.type==='Source E'?' selected':''}>Source E</option>
+      </select>
+    </td>
+    <td><textarea rows="2" placeholder="Police interview, OSINT platform, database query…">${esc(data.desc||'')}</textarea></td>
+    <td><input type="date" value="${esc(data.accessed||'')}"></td>
+    <td>
+      <select class="priv-select">
+        <option${data.privilege==='None'?' selected':''}>None</option>
+        <option${data.privilege==='Work Product'?' selected':''}>Work Product</option>
+        <option${data.privilege==='Attorney-Client'?' selected':''}>Attorney-Client</option>
+      </select>
+    </td>
+    <td><button class="del-row" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function getSourceRows() {
+  return Array.from(document.querySelectorAll('#source-body tr')).map(tr => {
+    const cells = tr.querySelectorAll('input, select, textarea');
+    return { ref: cells[0].value, type: cells[1].value, desc: cells[2].value, accessed: cells[3].value, privilege: cells[4].value };
+  });
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  setSaveStatus('saving', '● Unsaved changes');
+  saveTimer = setTimeout(() => saveBrief(false), 3000);
+}
+
+async function saveBrief(explicit=true) {
+  if (activeId === null) return;
+  setSaveStatus('saving', '● Saving…');
+
+  const data = {
+    witness_id:     activeId,
+    matter_id:      getVal('hdr-matter'),
+    case_name:      getVal('hdr-case'),
+    prepared_by:    getVal('hdr-prepby'),
+    prepared_for:   getVal('hdr-prepfor'),
+    report_version: getVal('hdr-version'),
+    report_date:    getVal('hdr-date'),
+    classification: getVal('hdr-class'),
+    report_num:     getVal('hdr-reportnum'),
+
+    s1_role:         getVal('s1-role'),
+    s1_aliases:      getVal('s1-aliases'),
+    s1_dob:          getVal('s1-dob'),
+    s1_address:      getVal('s1-address'),
+    s1_phones:       getVal('s1-phones'),
+    s1_relationship: getVal('s1-relationship'),
+    s1_language:     getVal('s1-language'),
+    s1_source:       getVal('s1-source'),
+    s1_criminal:     getVal('s1-criminal'),
+    s1_summary:      getVal('s1-summary'),
+
+    s2_rating:       getCredRating(),
+    s2_assessor:     getVal('s2-assessor'),
+    s2_date:         getVal('s2-date'),
+    s2_motive:       getVal('s2-motive'),
+    s2_dishonesty:   getVal('s2-dishonesty'),
+    s2_bias:         getVal('s2-bias'),
+    s2_consistency:  getVal('s2-consistency'),
+    s2_osint:        getVal('s2-osint'),
+
+    statements:     getStmtRows(),
+    contradictions: getContraRows(),
+    cross_exam:     getCrossRows(),
+    outstanding:    getOutstandingItems(),
+    sources:        getSourceRows(),
+
+    cert_name: getVal('cert-name'),
+    cert_org:  getVal('cert-org'),
+    cert_date: getVal('cert-date'),
+  };
+
+  try {
+    const r = await fetch(`/api/brief/${activeId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!r.ok) throw new Error('Save failed');
+    const j = await r.json();
+    briefs[activeId] = data;
+    briefsDirty = false;
+    const t = new Date(j.saved_at).toLocaleTimeString();
+    setSaveStatus('saved', `✓ Saved ${t}`);
+    renderSidebar(); // update green dot
+    if (explicit) {
+      const btn = document.getElementById('save-btn');
+      btn.textContent = '✓ Saved';
+      setTimeout(() => { btn.textContent = 'Save Brief'; }, 2000);
+    }
+  } catch(e) {
+    setSaveStatus('error', '✕ Save failed');
+  }
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function setSaveStatus(cls, msg) {
+  const el = document.getElementById('save-status');
+  el.className = cls;
+  el.textContent = msg;
+}
+
+// ── OSINT Links ───────────────────────────────────────────────────────────────
+function updateOsintLinks(name) {
+  document.getElementById('osint-name-display').innerHTML =
+    `<strong>${name}</strong><span>Click any link to open in browser</span>`;
+
+  const enc  = encodeURIComponent(`"${name}"`);
+  const slug = name.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, '-');
+  const slug2 = name.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, '+');
+
+  setLink('ol-google',       `https://www.google.com/search?q=${enc}`);
+  setLink('ol-gnews',        `https://news.google.com/search?q=${enc}`);
+  setLink('ol-courtlistener',`https://www.courtlistener.com/?q=${enc}&type=r&order_by=score+desc`);
+  setLink('ol-pacer',        `https://pcl.uscourts.gov/pcl/pages/search/findParty.jsf`);
+  setLink('ol-mn-court',     `https://publicaccess.courts.state.mn.us/CaseSearch`);
+  setLink('ol-spokeo',       `https://www.spokeo.com/${slug}/`);
+  setLink('ol-whitepages',   `https://www.whitepages.com/name/${slug2}`);
+  setLink('ol-beenverified', `https://www.beenverified.com/people/${slug}/`);
+  setLink('ol-fastpeople',   `https://www.fastpeoplesearch.com/name/${slug}`);
+  setLink('ol-facebook',     `https://www.facebook.com/search/top/?q=${encodeURIComponent(name)}`);
+  setLink('ol-linkedin',     `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(name)}`);
+  setLink('ol-instagram',    `https://www.instagram.com/explore/search/?q=${encodeURIComponent(name)}`);
+  setLink('ol-vine',         `https://www.vinelink.com/#/search/person`);
+  setLink('ol-misos',        `https://cofs.lara.state.mi.us/CorpWeb/CorpSearch/CorpSearch.aspx`);
+}
+
+function setLink(id, url) {
+  const el = document.getElementById(id);
+  if (el) el.href = url;
+}
+
+// ── Section toggle ────────────────────────────────────────────────────────────
+function toggleSection(head) {
+  const body   = head.nextElementSibling;
+  const toggle = head.querySelector('.section-toggle');
+  const collapsed = body.classList.toggle('collapsed');
+  toggle.classList.toggle('collapsed', collapsed);
+}
+
+// ── New Witness Modal ─────────────────────────────────────────────────────────
+function openNewWitnessModal() {
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-role').value = '';
+  document.getElementById('new-tag').value  = 'civilian';
+  document.getElementById('new-witness-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('new-name').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('new-witness-modal').style.display = 'none';
+}
+
+async function addWitness() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { document.getElementById('new-name').focus(); return; }
+
+  const body = {
+    full_name: name,
+    role:      document.getElementById('new-role').value.trim(),
+    role_tag:  document.getElementById('new-tag').value,
+    matter_id: caseInfo.matter_id || 'KENT-25-7082',
+    case_no:   caseInfo.case_no   || 'NSPD 2016-05264',
+  };
+
+  const r = await fetch('/api/witnesses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const w = await r.json();
+  witnesses.push(w);
+  closeModal();
+  renderSidebar();
+  selectWitness(w.id);
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Keyboard shortcut: Ctrl+S to save
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveBrief(true); }
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: #ffffff;
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+    --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --radius: 0.625rem;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs:  0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm:  0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow:     0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow-md:  0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+    --shadow-lg:  0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+    --shadow-xl:  0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+    /* Semantic layout tokens */
+    --bg-base:     #fbfaf7;
+    --bg-panel:    #e5e5e5;
+    --bg-elevated: #ffffff;
+    --border-slate: #d1d1d1;
+    --border-subtle: #e8e3d8;
+    --text-main-full: #11100d;
+    --text-main:  rgb(17 16 13 / 80%);
+    --text-muted: rgb(95 90 80 / 80%);
+    --accent-saffron:        #0b0939;
+    --accent-saffron-strong: #0a073a;
+
+    /* Status system */
+    --status-success-text:   #065f46;
+    --status-success-border: #10b981;
+    --status-success-bg:     #ecfdf5;
+    --status-warning-text:   #92400e;
+    --status-warning-border: #f59e0b;
+    --status-warning-bg:     #fff7ed;
+    --status-error-text:     #7f1d1d;
+    --status-error-border:   #ef4444;
+    --status-error-bg:       #ffefef;
+    --status-info-text:      #0f172a;
+    --status-info-border:    #60a5fa;
+    --status-info-bg:        #eff6ff;
+    --status-neutral-text:   #111827;
+    --status-neutral-border: #d1d5db;
+    --status-neutral-bg:     #f8fafc;
+
+    /* Reporting module action colors */
+    --color-b4:          #c9a84c;  /* Witness Brief — gold */
+    --color-timeline:    #47cfd1;  /* Timeline — teal */
+    --color-phone:       #60a5fa;  /* Phone Analysis — blue */
+    --color-graph:       #a78bfa;  /* Contact Graph — violet */
+    --color-gap:         #f97316;  /* Evidence Gap — orange */
+    --color-prosecution: #ef4444;  /* Prosecution Timeline — red */
+  }
+
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: #ffffff;
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+
+    /* Semantic layout tokens — dark */
+    --bg-base:     #0d0c0a;
+    --bg-panel:    #181818;
+    --bg-elevated: #242424;
+    --border-slate: #333333;
+    --border-subtle: #28241e;
+    --text-main-full: #f4f1e8;
+    --text-main:  rgb(244 241 232 / 80%);
+    --text-muted: rgb(184 176 162 / 80%);
+    --accent-saffron:        #c9a84c;
+    --accent-saffron-strong: #e8c96a;
+
+    /* Status system — dark (same values, good contrast on dark) */
+    --status-success-text:   #6ee7b7;
+    --status-success-border: #10b981;
+    --status-success-bg:     #022c22;
+    --status-warning-text:   #fcd34d;
+    --status-warning-border: #f59e0b;
+    --status-warning-bg:     #2c1a00;
+    --status-error-text:     #fca5a5;
+    --status-error-border:   #ef4444;
+    --status-error-bg:       #2c0a0a;
+    --status-info-text:      #93c5fd;
+    --status-info-border:    #60a5fa;
+    --status-info-bg:        #0c1a2e;
+    --status-neutral-text:   #e5e7eb;
+    --status-neutral-border: #4b5563;
+    --status-neutral-bg:     #1f2937;
+
+    /* Reporting module action colors — same in dark */
+    --color-b4:          #c9a84c;
+    --color-timeline:    #47cfd1;
+    --color-phone:       #60a5fa;
+    --color-graph:       #a78bfa;
+    --color-gap:         #f97316;
+    --color-prosecution: #ef4444;
+  }
+
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Dashboard card hover border */
+.dashboard-card {
+  border-color: var(--border);
+  transition: border-color 150ms ease;
+}
+.dashboard-card:hover {
+  border-color: var(--card-accent);
+}
+@supports (color: color-mix(in srgb, var(--card-accent) 50%, transparent)) {
+  .dashboard-card:hover {
+    border-color: color-mix(in srgb, var(--card-accent) 50%, transparent);
+  }
+}
+
+@layer utilities {
+  a,
+  button,
+  [role="button"],
+  .cursor-pointer {
+    transition-property: color, background-color, border-color, opacity;
+    transition-duration: 150ms;
+  }
+}

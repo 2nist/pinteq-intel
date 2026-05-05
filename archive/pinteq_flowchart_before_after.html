@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pinteq · Discovery Workflow — Before & After</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #ffffff;
+    font-family: 'Instrument Sans', sans-serif;
+    padding: 40px;
+    min-height: 100vh;
+  }
+
+  /* Print styles */
+  @media print {
+    body { padding: 20px; }
+    .no-print { display: none; }
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #0A0A14;
+    margin-bottom: 32px;
+  }
+
+  .header-left {}
+
+  .mark {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: .12em;
+    color: #0A0A14;
+    display: flex;
+    align-items: center;
+    gap: .15em;
+    margin-bottom: 4px;
+  }
+
+  .mark .bar { color: #2E5FA3; opacity: .7; }
+
+  .mark-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .doc-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #0A0A14;
+    margin-bottom: 4px;
+  }
+
+  .doc-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    color: #888;
+    text-transform: uppercase;
+  }
+
+  /* Column layout */
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* Column headers */
+  .col-header {
+    padding: 14px 20px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .col-header.before {
+    background: #1A1A2E;
+  }
+
+  .col-header.after {
+    background: #2E5FA3;
+  }
+
+  .col-header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    opacity: .6;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+
+  .col-header-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  /* Flow steps */
+  .step {
+    border: 1px solid #E0E0E8;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 4px;
+    background: #F4F4F6;
+    position: relative;
+  }
+
+  .step.active {
+    background: #EEF4FD;
+    border-color: #A8C4E8;
+  }
+
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .12em;
+    color: #aaa;
+    margin-bottom: 4px;
+  }
+
+  .step-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #0A0A14;
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.5;
+  }
+
+  .step-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .08em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-top: 6px;
+  }
+
+  .tag-manual { background: #FEE2E2; color: #991B1B; }
+  .tag-auto { background: #D5F5E3; color: #1E6B3C; }
+  .tag-smart { background: #D6E4F7; color: #2E5FA3; }
+  .tag-warn { background: #FEF3C7; color: #92540A; }
+
+  /* Arrow between steps */
+  .arrow {
+    text-align: center;
+    padding: 3px 0;
+    color: #ccc;
+    font-size: 14px;
+    position: relative;
+  }
+
+  .arrow-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .06em;
+    color: #bbb;
+  }
+
+  /* Pain points section */
+  .pain-section {
+    margin-top: 16px;
+    border-top: 1px solid #E0E0E8;
+    padding-top: 12px;
+  }
+
+  .pain-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #991B1B;
+    margin-bottom: 8px;
+  }
+
+  .pain-item {
+    background: #FEE2E2;
+    border-left: 3px solid #991B1B;
+    border-radius: 0 4px 4px 0;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+  }
+
+  .pain-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #991B1B;
+    margin-bottom: 2px;
+  }
+
+  .pain-desc {
+    font-size: 11px;
+    color: #7a2020;
+    line-height: 1.4;
+  }
+
+  /* Gains section */
+  .gain-section {
+    margin-top: 16px;
+    border-top: 1px solid #A8C4E8;
+    padding-top: 12px;
+  }
+
+  .gain-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #1E6B3C;
+    margin-bottom: 8px;
+  }
+
+  .gain-item {
+    background: #D5F5E3;
+    border-left: 3px solid #1E6B3C;
+    border-radius: 0 4px 4px 0;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+  }
+
+  .gain-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1E6B3C;
+    margin-bottom: 2px;
+  }
+
+  .gain-desc {
+    font-size: 11px;
+    color: #1a5530;
+    line-height: 1.4;
+  }
+
+  /* Bottom note */
+  .bottom-note {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid #E0E0E8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .note-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .08em;
+    color: #aaa;
+    font-style: italic;
+  }
+
+  .note-mark {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: .1em;
+    color: #ccc;
+  }
+
+  .note-mark .bar { color: #2E5FA3; opacity: .5; }
+
+  .print-btn {
+    no-print: true;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    background: #2E5FA3;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="page">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="mark">
+        <span class="bar">|</span>
+        <span>pinteq</span>
+        <span class="bar">|</span>
+      </div>
+      <div class="mark-sub">Operational Intelligence & Workflow Systems</div>
+    </div>
+    <div class="header-right">
+      <div class="doc-title">Discovery Workflow — Before & After</div>
+      <div class="doc-sub">The Law Office of Charles M. Ayres · May 2026</div>
+    </div>
+  </div>
+
+  <div class="columns">
+
+    <!-- LEFT — BEFORE -->
+    <div class="col-left">
+      <div class="col-header before">
+        <div class="col-header-label">Current state</div>
+        <div class="col-header-title">How discovery flows today</div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Courthouse — discovery received</div>
+        <div class="step-desc">DVD, USB, or physical media. Whatever format the prosecution provides. No naming standard. No manifest. No record of what arrived.</div>
+        <span class="step-tag tag-manual">Physical hand-off</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">manual copy · no log</span></div>
+
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">4TB external drive — first landing</div>
+        <div class="step-desc">Files copied as-is. Original prosecution naming intact. No case association enforced. Accumulates over time with no organization.</div>
+        <span class="step-tag tag-warn">Raw dump</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">manual transfer · no log</span></div>
+
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">10TB working drive — working storage</div>
+        <div class="step-desc">Mixed folders. Inconsistent naming. Some cases have folders, some don't. No version control. Duplicate risk. No chain of custody.</div>
+        <span class="step-tag tag-warn">Working copy</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">manual upload by secretary</span></div>
+
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Smokeball — partial upload</div>
+        <div class="step-desc">Some files make it in. Naming inconsistent. Structure varies by who uploaded. Not everything on the drives is in Smokeball.</div>
+        <span class="step-tag tag-warn">Incomplete truth</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">manual search when needed</span></div>
+
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-title">Analysis — manual and scattered</div>
+        <div class="step-desc">Intelligence lives in freeform memos, emails, and memory. Witness contradictions found by accident. No searchable case intelligence layer.</div>
+        <span class="step-tag tag-manual">Unstructured</span>
+      </div>
+
+      <div class="pain-section">
+        <div class="pain-label">Where this breaks down</div>
+
+        <div class="pain-item">
+          <div class="pain-title">No chain of custody</div>
+          <div class="pain-desc">No record of what discovery arrived, in what format, or when. Files go missing with no paper trail.</div>
+        </div>
+
+        <div class="pain-item">
+          <div class="pain-title">Files are unfindable</div>
+          <div class="pain-desc">SUSPICIOUS_CONDITION_NOISE_SUBJECT-3 · ASSAULT · 2025-12-08_19-54-17_utc_e37 · Case-WY2534851 — four formats in one folder. Opening each file is the only way to know what's in it.</div>
+        </div>
+
+        <div class="pain-item">
+          <div class="pain-title">11GB of unindexed video</div>
+          <div class="pain-desc">Body cam and surveillance files sit in Smokeball with no transcription, no searchable content, no index. The evidence inside is inaccessible without playing every file.</div>
+        </div>
+
+        <div class="pain-item">
+          <div class="pain-title">14 tasks overdue</div>
+          <div class="pain-desc">No automated task generation from case events. Deadlines tracked manually across a 64-matter caseload.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT — AFTER -->
+    <div class="col-right">
+      <div class="col-header after">
+        <div class="col-header-label">With Pinteq</div>
+        <div class="col-header-title">How discovery flows with the pipeline</div>
+      </div>
+
+      <div class="step active">
+        <div class="step-num">01</div>
+        <div class="step-title">Courthouse — intake manifest created</div>
+        <div class="step-desc">When discovery arrives, a 30-second intake form logs: case ID, date received, source, media type, file count. Chain of custody begins before anything is copied.</div>
+        <span class="step-tag tag-auto">Logged on arrival</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">copied to drop folder</span></div>
+
+      <div class="step active">
+        <div class="step-num">02</div>
+        <div class="step-title">Pinteq intake pipeline — auto-activates</div>
+        <div class="step-desc">Pipeline watches the drop folder. The moment files land it classifies every file by type, assigns document category, renames to the agreed convention, and logs to the master index.</div>
+        <span class="step-tag tag-auto">Automatic</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">background processing</span></div>
+
+      <div class="step active">
+        <div class="step-num">03</div>
+        <div class="step-title">Content extraction — what's inside</div>
+        <div class="step-desc">PDFs → text extracted. CSVs → structured rows. Audio/video → Whisper transcription queue. Spanish flagged for translation. All content searchable.</div>
+        <span class="step-tag tag-auto">Background job</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">API upload</span></div>
+
+      <div class="step active">
+        <div class="step-num">04</div>
+        <div class="step-title">Smokeball — structured and complete</div>
+        <div class="step-desc">Every file uploaded to the correct matter folder with the normalized name. Tags applied. Chain of custody memo created. Chuck sees organized files without touching the pipeline.</div>
+        <span class="step-tag tag-smart">Cloud confirmed</span>
+      </div>
+
+      <div class="arrow">↓ <span class="arrow-label">intelligence layer</span></div>
+
+      <div class="step active">
+        <div class="step-num">05</div>
+        <div class="step-title">Intelligence — structured and queryable</div>
+        <div class="step-desc">Witness briefs generated. Relationship maps built. Chronology reconstructed. Contradictions flagged. Everything searchable by name, date, topic, or connection.</div>
+        <span class="step-tag tag-smart">Queryable</span>
+      </div>
+
+      <div class="gain-section">
+        <div class="gain-label">What becomes possible</div>
+
+        <div class="gain-item">
+          <div class="gain-title">"Did that FOIA package make it in?"</div>
+          <div class="gain-desc">Check the master index. Every file logged from the moment it arrived. Chain of custody complete.</div>
+        </div>
+
+        <div class="gain-item">
+          <div class="gain-title">"Show all contact between X and Y before [date]"</div>
+          <div class="gain-desc">Phone records and social data cross-referenced against the case timeline. Answer in seconds.</div>
+        </div>
+
+        <div class="gain-item">
+          <div class="gain-title">"Where does this witness contradict themselves?"</div>
+          <div class="gain-desc">Statement record cross-referenced across all transcripts, memos, and prior appearances. Contradictions surfaced automatically.</div>
+        </div>
+
+        <div class="gain-item">
+          <div class="gain-title">"What came in on the Allen case last week?"</div>
+          <div class="gain-desc">Index query by case ID and date range. Complete list with file types, sizes, and processing status.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-note">
+    <div class="note-text">Smokeball remains the source of truth — Pinteq adds the intelligence layer on top of it · Confidential · Pinteq LLC · May 2026</div>
+    <div class="note-mark">
+      <span class="bar">|</span>
+      <span>pinteq</span>
+      <span class="bar">|</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

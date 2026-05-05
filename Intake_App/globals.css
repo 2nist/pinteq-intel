@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+/* Note: removed incorrect @shadcn/ui import — that package is a CLI, not runtime styles. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: #ffffff;
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+    --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --radius: 0.625rem;
+    --shadow-x: 0;
+    --shadow-y: 1px;
+    --shadow-blur: 3px;
+    --shadow-spread: 0px;
+    --shadow-opacity: 0.1;
+    --shadow-color: oklch(0 0 0);
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --tracking-normal: 0em;
+    --spacing: 0.25rem;
+    /* Semantic action colors */
+    --color-start: #47cfd1; /* Start New Intake (teal) */
+    --color-open: #38bdf8; /* Open Existing Batch (teal-blue) */
+    --color-search: #60a5fa; /* Search (blue) */
+    --color-review: #f97316; /* Review (orangeish-red) */
+    --color-normalize: rgb(245, 158, 11); /* Normalize (amber) */
+    --color-reports: rgb(52, 211, 153); /* Reports & Export (green) */
+    --bg-base: #fbfaf7;
+    --bg-panel: #e5e5e5;
+    --bg-elevated: #ffffff;
+    --border-slate: #d1d1d1;
+    --border-subtle: #e8e3d8;
+    --text-main-full: #11100d;
+    --text-main: rgb(17 16 13 / 80%);
+    --text-muted: rgb(95 90 80 / 80%);
+    --accent-saffron: #0b0939;
+    --accent-saffron-strong: #0a073a;
+    /* Status color system */
+    --status-success-text: #065f46;
+    --status-success-border: #10b981;
+    --status-success-bg: #ecfdf5;
+
+    --status-warning-text: #92400e;
+    --status-warning-border: #f59e0b;
+    --status-warning-bg: #fff7ed;
+
+    --status-error-text: #7f1d1d;
+    --status-error-border: #ef4444;
+    --status-error-bg: #ffefef;
+
+    --status-info-text: #0f172a;
+    --status-info-border: #60a5fa;
+    --status-info-bg: #eff6ff;
+
+    --status-neutral-text: #111827;
+    --status-neutral-border: #d1d5db;
+    --status-neutral-bg: #f8fafc;
+  }
+
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: #ffffff;
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+    --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --radius: 0.625rem;
+    --shadow-x: 0;
+    --shadow-y: 1px;
+    --shadow-blur: 3px;
+    --shadow-spread: 0px;
+    --shadow-opacity: 0.1;
+    --shadow-color: oklch(0 0 0);
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --bg-base: #0d0c0a;
+    --bg-panel: #181818;
+    --bg-elevated: #242424;
+    --border-slate: #333333;
+    --border-subtle: #28241e;
+    --text-main-full: #f4f1e8;
+    --text-main: rgb(244 241 232 / 80%);
+    --text-muted: rgb(184 176 162 / 80%);
+    --accent-saffron: #979a6e;
+    --accent-saffron-strong: #24256f;
+  }
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Dashboard card accent border on hover uses the --card-accent token set per-card */
+.dashboard-card {
+  border-color: var(--border);
+  transition: border-color 150ms ease;
+}
+/* Default fallback: use full accent color */
+.dashboard-card:hover {
+  border-color: var(--card-accent);
+}
+/* If supported, mix the accent with transparency for a 'half-dim' effect */
+@supports (color: color-mix(in srgb, var(--card-accent) 50%, transparent)) {
+  .dashboard-card:hover {
+    border-color: color-mix(in srgb, var(--card-accent) 50%, transparent);
+  }
+}
+
+@layer utilities {
+  .text-white {
+    color: rgb(255 255 255 / 80%);
+  }
+
+  a,
+  button,
+  [role="button"],
+  .cursor-pointer {
+    transition-property: color, background-color, border-color, opacity;
+    transition-duration: 150ms;
+  }
+
+  a:hover,
+  a:focus-visible,
+  button:hover,
+  button:focus-visible,
+  [role="button"]:hover,
+  [role="button"]:focus-visible,
+  .cursor-pointer:hover,
+  .cursor-pointer:focus-visible {
+    color: var(--text-main-full);
+  }
+
+  a.text-white:hover,
+  a.text-white:focus-visible,
+  button.text-white:hover,
+  button.text-white:focus-visible,
+  [role="button"].text-white:hover,
+  [role="button"].text-white:focus-visible,
+  .cursor-pointer.text-white:hover,
+  .cursor-pointer.text-white:focus-visible {
+    color: rgb(255 255 255 / 100%);
+  }
+}

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pinteq · Case Intelligence Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #ffffff;
+    font-family: 'Instrument Sans', sans-serif;
+    padding: 40px;
+  }
+
+  @media print {
+    body { padding: 20px; }
+    .no-print { display: none; }
+  }
+
+  .page { max-width: 1100px; margin: 0 auto; }
+
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #0A0A14;
+    margin-bottom: 32px;
+  }
+
+  .mark {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: .12em;
+    color: #0A0A14;
+    display: flex;
+    align-items: center;
+    gap: .15em;
+    margin-bottom: 4px;
+  }
+
+  .mark .bar { color: #2E5FA3; opacity: .7; }
+  .mark-sub { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #888; }
+
+  .doc-title { font-size: 18px; font-weight: 500; color: #0A0A14; margin-bottom: 4px; text-align: right; }
+  .doc-sub { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .1em; color: #888; text-transform: uppercase; text-align: right; }
+
+  /* Pipeline stages */
+  .pipeline { display: flex; flex-direction: column; gap: 0; }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 120px 1fr 280px;
+    gap: 0;
+    border: 1px solid #E0E0E8;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .stage-num {
+    background: #0A0A14;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .stage-num-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #5a7aaa;
+    margin-bottom: 6px;
+  }
+
+  .stage-num-n {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 300;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .stage-body {
+    background: #F4F4F6;
+    padding: 18px 20px;
+    border-left: 1px solid #E0E0E8;
+    border-right: 1px solid #E0E0E8;
+  }
+
+  .stage-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0A0A14;
+    margin-bottom: 6px;
+  }
+
+  .stage-desc {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .stage-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .stage-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .06em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: #fff;
+    border: 1px solid #D0D0DC;
+    color: #555;
+  }
+
+  .stage-right {
+    background: #EEF4FD;
+    padding: 18px 16px;
+  }
+
+  .stage-right-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #2E5FA3;
+    margin-bottom: 8px;
+  }
+
+  .api-endpoint {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #2E5FA3;
+    background: #fff;
+    border: 1px solid #A8C4E8;
+    border-radius: 3px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .stage-connector {
+    text-align: center;
+    padding: 3px 0;
+    font-size: 18px;
+    color: #ccc;
+    margin-left: 60px;
+  }
+
+  /* Source types grid */
+  .sources {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .source-card {
+    border: 1px solid #E0E0E8;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    background: #F4F4F6;
+  }
+
+  .source-icon {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    color: #2E5FA3;
+    letter-spacing: .06em;
+    margin-bottom: 6px;
+  }
+
+  .source-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #0A0A14;
+    margin-bottom: 3px;
+  }
+
+  .source-desc {
+    font-size: 10px;
+    color: #888;
+    line-height: 1.4;
+  }
+
+  /* Query section */
+  .query-section {
+    margin-top: 24px;
+    border: 1px solid #E0E0E8;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .query-header {
+    background: #2E5FA3;
+    padding: 12px 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: .02em;
+  }
+
+  .query-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #E0E0E8;
+  }
+
+  .query-item {
+    background: #fff;
+    padding: 12px 16px;
+  }
+
+  .query-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #2E5FA3;
+    margin-bottom: 4px;
+  }
+
+  .query-sub {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.4;
+  }
+
+  .bottom-note {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #E0E0E8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .note-text { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .08em; color: #aaa; font-style: italic; }
+  .note-mark { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 300; letter-spacing: .1em; color: #ccc; }
+  .note-mark .bar { color: #2E5FA3; opacity: .5; }
+
+  .print-btn { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; background: #2E5FA3; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-bottom: 20px; }
+
+  /* Section label above pipeline */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="mark"><span class="bar">|</span><span>pinteq</span><span class="bar">|</span></div>
+      <div class="mark-sub">Operational Intelligence & Workflow Systems</div>
+    </div>
+    <div>
+      <div class="doc-title">Case Intelligence Pipeline</div>
+      <div class="doc-sub">The Law Office of Charles M. Ayres · May 2026</div>
+    </div>
+  </div>
+
+  <!-- Source types -->
+  <div class="section-label">Data sources entering the pipeline</div>
+  <div class="sources">
+    <div class="source-card">
+      <div class="source-icon">PDF</div>
+      <div class="source-label">Reports & filings</div>
+      <div class="source-desc">Police reports, FOIA, court filings, prelim exhibits</div>
+    </div>
+    <div class="source-card">
+      <div class="source-icon">CSV</div>
+      <div class="source-label">Phone records</div>
+      <div class="source-desc">Call logs, contact lists, communication data</div>
+    </div>
+    <div class="source-card">
+      <div class="source-icon">MP4</div>
+      <div class="source-label">Audio & video</div>
+      <div class="source-desc">Body cam, surveillance, recorded interviews</div>
+    </div>
+    <div class="source-card">
+      <div class="source-icon">IMG</div>
+      <div class="source-label">Photos & evidence</div>
+      <div class="source-desc">Crime scene, exhibits, documentation</div>
+    </div>
+    <div class="source-card">
+      <div class="source-icon">OSINT</div>
+      <div class="source-label">Open source</div>
+      <div class="source-desc">Social media, public records, ICHAT, IDACOR</div>
+    </div>
+  </div>
+
+  <!-- Pipeline stages -->
+  <div class="section-label">Five-stage intelligence pipeline</div>
+  <div class="pipeline">
+
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-num-label">Stage</div>
+        <div class="stage-num-n">01</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-title">Intake & chain of custody</div>
+        <div class="stage-desc">Files copied to drop folder. Intake form logged with case ID, date, source, and media type. Every file receives a unique intake record before any processing begins. Nothing enters the system without a logged receipt.</div>
+        <div class="stage-items">
+          <span class="stage-item">Intake form</span>
+          <span class="stage-item">Case association</span>
+          <span class="stage-item">Date stamp</span>
+          <span class="stage-item">Source logging</span>
+          <span class="stage-item">Chain of custody record</span>
+        </div>
+      </div>
+      <div class="stage-right">
+        <div class="stage-right-label">Smokeball API</div>
+        <span class="api-endpoint">/matters — link to case</span>
+        <span class="api-endpoint">/matters/{id}/memos — log receipt</span>
+      </div>
+    </div>
+
+    <div class="stage-connector">↓</div>
+
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-num-label">Stage</div>
+        <div class="stage-num-n">02</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-title">Classification & normalization</div>
+        <div class="stage-desc">Pipeline detects file type and assigns document category. Every file renamed to the agreed convention: [CASE_ID]_[DATE]_[SOURCE]_[TYPE]_[SEQ]. Original filename preserved in the index. Moved to structured folder hierarchy.</div>
+        <div class="stage-items">
+          <span class="stage-item">Type detection</span>
+          <span class="stage-item">Category assignment</span>
+          <span class="stage-item">Rename convention</span>
+          <span class="stage-item">Folder placement</span>
+          <span class="stage-item">Master index entry</span>
+        </div>
+      </div>
+      <div class="stage-right">
+        <div class="stage-right-label">Smokeball API</div>
+        <span class="api-endpoint">/files — upload normalized file</span>
+        <span class="api-endpoint">/folders — place in structure</span>
+        <span class="api-endpoint">/matters/{id}/tags — apply tags</span>
+      </div>
+    </div>
+
+    <div class="stage-connector">↓</div>
+
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-num-label">Stage</div>
+        <div class="stage-num-n">03</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-title">Content extraction</div>
+        <div class="stage-desc">PDFs → text extracted via pdfplumber. CSVs → structured database rows. Audio/video → Whisper API transcription queue. Spanish-language material flagged for translation pass. All extracted content stored alongside the file record and made fully searchable.</div>
+        <div class="stage-items">
+          <span class="stage-item">PDF text extraction</span>
+          <span class="stage-item">CSV parsing</span>
+          <span class="stage-item">Whisper transcription</span>
+          <span class="stage-item">Spanish translation</span>
+          <span class="stage-item">Full-text search index</span>
+        </div>
+      </div>
+      <div class="stage-right">
+        <div class="stage-right-label">Smokeball API</div>
+        <span class="api-endpoint">/files — upload transcript PDF</span>
+        <span class="api-endpoint">/matters/{id}/memos — key quotes</span>
+      </div>
+    </div>
+
+    <div class="stage-connector">↓</div>
+
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-num-label">Stage</div>
+        <div class="stage-num-n">04</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-title">Intelligence construction</div>
+        <div class="stage-desc">Relationship graph built from phone records, contact lists, and social data. Case chronology reconstructed from events, file history, and communications. Witness statements cross-referenced for contradictions. Prosecution timeline gaps identified.</div>
+        <div class="stage-items">
+          <span class="stage-item">Relationship mapping</span>
+          <span class="stage-item">Network graph</span>
+          <span class="stage-item">Chronology engine</span>
+          <span class="stage-item">Contradiction detection</span>
+          <span class="stage-item">Witness tagging</span>
+        </div>
+      </div>
+      <div class="stage-right">
+        <div class="stage-right-label">Smokeball API</div>
+        <span class="api-endpoint">/contacts — add discovered people</span>
+        <span class="api-endpoint">/contacts/{id}/tags — tag roles</span>
+        <span class="api-endpoint">/events — populate timeline</span>
+      </div>
+    </div>
+
+    <div class="stage-connector">↓</div>
+
+    <div class="stage">
+      <div class="stage-num" style="background:#2E5FA3;">
+        <div class="stage-num-label">Stage</div>
+        <div class="stage-num-n">05</div>
+      </div>
+      <div class="stage-body" style="background:#EEF4FD; border-color:#A8C4E8;">
+        <div class="stage-title">Intelligence delivery</div>
+        <div class="stage-desc">Structured analytical products delivered directly into Smokeball as matter memos. B4 Witness Intelligence Briefs. Case intelligence summaries. Relationship maps. Chuck opens Smokeball and finds finished intelligence ready for trial preparation — no hunting required.</div>
+        <div class="stage-items">
+          <span class="stage-item">B4 witness briefs</span>
+          <span class="stage-item">Subject profiles</span>
+          <span class="stage-item">Case summaries</span>
+          <span class="stage-item">Network visualizations</span>
+          <span class="stage-item">Trial prep documents</span>
+        </div>
+      </div>
+      <div class="stage-right" style="background:#D5F5E3; border-color:#A8D5B8;">
+        <div class="stage-right-label" style="color:#1E6B3C;">Output to Chuck</div>
+        <span class="api-endpoint" style="border-color:#A8D5B8; color:#1E6B3C;">Smokeball memos — briefs</span>
+        <span class="api-endpoint" style="border-color:#A8D5B8; color:#1E6B3C;">Smokeball contacts — tagged</span>
+        <span class="api-endpoint" style="border-color:#A8D5B8; color:#1E6B3C;">Structured PDF reports</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Query examples -->
+  <div class="query-section" style="margin-top: 20px;">
+    <div class="query-header">What Chuck can query when the pipeline is operational</div>
+    <div class="query-grid">
+      <div class="query-item">
+        <div class="query-text">"Show all contact between X and Y before [date]"</div>
+        <div class="query-sub">Phone records and social data cross-referenced against case timeline</div>
+      </div>
+      <div class="query-item">
+        <div class="query-text">"Who mentions [witness] across all statements?"</div>
+        <div class="query-sub">All transcripts and memos searched simultaneously</div>
+      </div>
+      <div class="query-item">
+        <div class="query-text">"Where does [witness] contradict themselves?"</div>
+        <div class="query-sub">Statement record cross-referenced across all documented appearances</div>
+      </div>
+      <div class="query-item">
+        <div class="query-text">"Map everyone connected to [subject] within 2 degrees"</div>
+        <div class="query-sub">Relationship graph traversal from phone records and social data</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-note">
+    <div class="note-text">Your data stays in your Smokeball account · Pinteq adds the intelligence layer · nothing replaces what already works · Confidential · Pinteq LLC · May 2026</div>
+    <div class="note-mark"><span class="bar">|</span><span>pinteq</span><span class="bar">|</span></div>
+  </div>
+
+</div>
+</body>
+</html>

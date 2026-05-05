@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pinteq · Client Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #070709;
+  --surface: #0c0c12;
+  --surface2: #111118;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --accent: #4a7eff;
+  --accent-dim: rgba(74,126,255,0.1);
+  --accent-warm: #c8a96e;
+  --text: #eaeaf4;
+  --muted: #68687f;
+  --muted2: #44445a;
+  --green: #2ecc71;
+  --green-dim: rgba(46,204,113,0.12);
+  --red: #e74c3c;
+  --mono: 'DM Mono', monospace;
+  --serif: 'Instrument Serif', serif;
+  --sans: 'Instrument Sans', sans-serif;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Shared components ── */
+.pin-mark {
+  font-family: var(--mono);
+  font-weight: 300;
+  letter-spacing: .14em;
+  display: flex;
+  align-items: center;
+  gap: .15em;
+  text-decoration: none;
+}
+.pin-mark .bar { color: var(--accent); opacity: .6; }
+.pin-mark .word { color: var(--text); }
+
+.btn {
+  font-family: var(--mono);
+  font-size: .75rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 3px;
+  padding: .75rem 1.5rem;
+  cursor: pointer;
+  transition: all .18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #5a8eff; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border2); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(231,76,60,0.3); }
+.btn-danger:hover { background: rgba(231,76,60,0.1); }
+.btn-sm { padding: .45rem .9rem; font-size: .65rem; }
+.btn-full { width: 100%; justify-content: center; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .25rem .6rem;
+  border-radius: 3px;
+}
+.tag-blue { background: var(--accent-dim); color: var(--accent); }
+.tag-green { background: var(--green-dim); color: var(--green); }
+.tag-warm { background: rgba(200,169,110,0.12); color: var(--accent-warm); }
+.tag-muted { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+/* ── Nav ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 1rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid transparent;
+  transition: all .3s;
+}
+.nav.solid {
+  background: rgba(7,7,9,0.95);
+  backdrop-filter: blur(16px);
+  border-color: var(--border);
+}
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a {
+  font-family: var(--mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .2s;
+}
+.nav-links a:hover { color: var(--text); }
+
+/* ── Landing page ── */
+.landing { min-height: 100vh; }
+
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 6rem 2rem 4rem; text-align: center; position: relative; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,0.016) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.016) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+.hero-glow {
+  position: absolute; top: 35%; left: 50%; transform: translate(-50%,-50%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse, rgba(74,126,255,0.05) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-inner { position: relative; z-index: 1; max-width: 860px; }
+
+.hero-pre {
+  font-family: var(--mono); font-size: .65rem; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted2); margin-bottom: 3rem;
+  animation: fadeUp .7s ease forwards .15s; opacity: 0;
+}
+.hero-mark-large {
+  font-family: var(--mono); font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-weight: 300; letter-spacing: .14em; color: var(--text);
+  line-height: 1; margin-bottom: 1.5rem;
+  display: flex; align-items: center; justify-content: center; gap: .14em;
+  animation: fadeUp .7s ease forwards .3s; opacity: 0;
+}
+.hero-mark-large .bar { color: var(--accent); opacity: .55; }
+
+.hero-art {
+  font-family: var(--serif); font-style: italic;
+  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  color: var(--accent-warm); margin-bottom: 1rem;
+  animation: fadeUp .7s ease forwards .45s; opacity: 0;
+}
+.hero-desc {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 3.5rem;
+  animation: fadeUp .7s ease forwards .55s; opacity: 0;
+}
+.hero-rule {
+  width: 1px; height: 36px; background: linear-gradient(to bottom, var(--muted2), transparent);
+  margin: 0 auto 2.5rem;
+  animation: fadeIn .7s ease forwards .6s; opacity: 0;
+}
+.hero-statement {
+  font-size: clamp(1rem, 1.8vw, 1.15rem); color: rgba(234,234,244,0.55);
+  max-width: 500px; margin: 0 auto 3rem; line-height: 1.8;
+  animation: fadeUp .7s ease forwards .65s; opacity: 0;
+}
+.hero-statement strong { color: rgba(234,234,244,0.85); font-weight: 500; }
+.hero-pills {
+  display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 3rem;
+  animation: fadeUp .7s ease forwards .75s; opacity: 0;
+}
+.hero-pill {
+  font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); border: 1px solid var(--border2); padding: .4rem .9rem; border-radius: 2px;
+}
+.hero-ctas {
+  display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  animation: fadeUp .7s ease forwards .85s; opacity: 0;
+}
+
+/* Sections */
+.section { padding: 7rem 2rem; max-width: 1100px; margin: 0 auto; border-top: 1px solid var(--border); }
+.section-kicker {
+  font-family: var(--mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .6rem;
+}
+.section-kicker::before { content: ''; width: 20px; height: 1px; background: var(--accent); opacity: .5; }
+.section-heading { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 500; line-height: 1.2; margin-bottom: 1.25rem; }
+.section-heading em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--accent-warm); }
+.section-sub { font-size: 1rem; color: rgba(234,234,244,0.55); max-width: 520px; line-height: 1.8; margin-bottom: 3rem; }
+
+/* Services grid */
+.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.service-card { background: var(--surface); padding: 2rem; transition: background .2s; position: relative; overflow: hidden; }
+.service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); opacity: 0; transition: opacity .2s; }
+.service-card:hover { background: var(--surface2); }
+.service-card:hover::before { opacity: 1; }
+.service-num { font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; color: var(--accent); opacity: .6; margin-bottom: 1.25rem; }
+.service-title { font-family: var(--mono); font-size: .88rem; color: var(--text); margin-bottom: 1rem; line-height: 1.4; }
+.service-desc { font-size: .9rem; color: var(--muted); line-height: 1.7; }
+
+/* Contact */
+.contact-inner { text-align: center; max-width: 520px; margin: 0 auto; }
+.contact-heading { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 500; line-height: 1.15; margin-bottom: 1.25rem; }
+.contact-heading em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--accent-warm); }
+.contact-sub { font-size: 1rem; color: var(--muted); margin-bottom: 2.5rem; line-height: 1.7; }
+.contact-email { font-family: var(--mono); font-size: 1.1rem; font-weight: 300; letter-spacing: .08em; color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(74,126,255,0.3); padding-bottom: 3px; transition: border-color .2s; }
+.contact-email:hover { border-color: var(--accent); }
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border); padding: 1.75rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer-left { display: flex; align-items: center; gap: 1.5rem; }
+.footer-tagline { font-family: var(--serif); font-style: italic; font-size: .8rem; color: var(--muted2); }
+.footer-copy { font-family: var(--mono); font-size: .6rem; letter-spacing: .08em; color: var(--muted2); }
+.footer-portal-link { font-family: var(--mono); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted2); text-decoration: none; transition: color .2s; }
+.footer-portal-link:hover { color: var(--accent); }
+
+/* ── Login page ── */
+.login-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 2rem; position: relative;
+}
+.login-bg {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.014) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.014) 1px, transparent 1px);
+  background-size: 60px 60px; pointer-events: none;
+}
+.login-box {
+  position: relative; z-index: 1;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 3rem 2.5rem; width: 100%; max-width: 420px;
+}
+.login-mark { margin-bottom: 2rem; }
+.login-title { font-size: 1.1rem; font-weight: 500; color: var(--text); margin-bottom: .5rem; }
+.login-sub { font-size: .85rem; color: var(--muted); margin-bottom: 2rem; }
+.form-group { margin-bottom: 1.25rem; }
+.form-label { font-family: var(--mono); font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: .5rem; }
+.form-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 4px; padding: .75rem 1rem;
+  font-family: var(--mono); font-size: .9rem; color: var(--text);
+  outline: none; transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--muted2); }
+.login-error { font-family: var(--mono); font-size: .75rem; color: var(--red); margin-bottom: 1rem; padding: .6rem 1rem; background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.2); border-radius: 4px; }
+.login-back { font-family: var(--mono); font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: .4rem; margin-top: 1.5rem; transition: color .2s; }
+.login-back:hover { color: var(--text); }
+
+/* ── Portal (client view) ── */
+.portal-layout { min-height: 100vh; display: flex; flex-direction: column; }
+.portal-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.portal-header-left { display: flex; align-items: center; gap: 1.5rem; }
+.portal-badge { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-left: 1px solid var(--border2); padding-left: 1.5rem; }
+.portal-user { display: flex; align-items: center; gap: .75rem; }
+.portal-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dim); border: 1px solid rgba(74,126,255,0.3); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: .7rem; color: var(--accent); }
+.portal-username { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em; color: var(--muted); }
+
+.portal-body { flex: 1; padding: 3rem 2rem; max-width: 1000px; margin: 0 auto; width: 100%; }
+.portal-welcome { margin-bottom: 3rem; }
+.portal-welcome h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: .5rem; }
+.portal-welcome p { font-size: .95rem; color: var(--muted); }
+.portal-welcome-date { font-family: var(--mono); font-size: .65rem; letter-spacing: .1em; color: var(--muted2); margin-top: .5rem; }
+
+.portal-section-label {
+  font-family: var(--mono); font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 1.25rem; display: flex; align-items: center; gap: .6rem;
+}
+.portal-section-label::before { content: ''; width: 16px; height: 1px; background: var(--accent); opacity: .5; }
+
+.doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 3rem; }
+.doc-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.5rem; transition: all .2s;
+  cursor: pointer; text-decoration: none; display: block;
+}
+.doc-card:hover { border-color: var(--border2); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.doc-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; }
+.doc-icon { width: 40px; height: 48px; background: var(--accent-dim); border: 1px solid rgba(74,126,255,0.2); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: .6rem; color: var(--accent); letter-spacing: .06em; }
+.doc-title { font-size: 1rem; font-weight: 500; color: var(--text); margin-bottom: .35rem; }
+.doc-desc { font-size: .85rem; color: var(--muted); line-height: 1.5; margin-bottom: 1rem; }
+.doc-meta { display: flex; align-items: center; justify-content: space-between; }
+.doc-date { font-family: var(--mono); font-size: .62rem; letter-spacing: .06em; color: var(--muted2); }
+.doc-action { font-family: var(--mono); font-size: .65rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+
+/* Status bar */
+.status-bar {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.25rem 1.5rem;
+  display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+.status-item { display: flex; flex-direction: column; gap: .3rem; }
+.status-label { font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted2); }
+.status-value { font-size: .95rem; font-weight: 500; color: var(--text); }
+.status-value.green { color: var(--green); }
+.status-value.amber { color: var(--accent-warm); }
+.status-divider { width: 1px; height: 36px; background: var(--border2); }
+
+/* Next steps */
+.next-steps { display: flex; flex-direction: column; gap: .75rem; }
+.next-step { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; }
+.next-step-num { font-family: var(--mono); font-size: .7rem; color: var(--accent); min-width: 24px; }
+.next-step-body { flex: 1; }
+.next-step-title { font-size: .95rem; font-weight: 500; color: var(--text); margin-bottom: .2rem; }
+.next-step-desc { font-size: .82rem; color: var(--muted); }
+.next-step-tag { flex-shrink: 0; }
+
+/* ── Admin view ── */
+.admin-layout { min-height: 100vh; display: flex; }
+.admin-sidebar {
+  width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+  padding: 1.5rem; display: flex; flex-direction: column; gap: 2rem;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+}
+.admin-logo { padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+.admin-badge { font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-top: .4rem; }
+.admin-nav { display: flex; flex-direction: column; gap: .25rem; }
+.admin-nav-item {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .06em;
+  color: var(--muted); padding: .6rem .75rem; border-radius: 4px;
+  cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: .6rem;
+  border: none; background: none; text-align: left; width: 100%;
+}
+.admin-nav-item:hover { background: var(--surface2); color: var(--text); }
+.admin-nav-item.active { background: var(--accent-dim); color: var(--accent); }
+.admin-nav-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .5; }
+.admin-nav-label { font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted2); margin-bottom: .5rem; padding: 0 .75rem; }
+
+.admin-main { margin-left: 240px; flex: 1; padding: 2.5rem; }
+.admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem; }
+.admin-title { font-size: 1.3rem; font-weight: 500; }
+.admin-subtitle { font-family: var(--mono); font-size: .65rem; letter-spacing: .1em; color: var(--muted); margin-top: .25rem; }
+
+/* Admin client cards */
+.client-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+.client-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; }
+.client-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.client-avatar-lg { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-dim); border: 1px solid rgba(74,126,255,0.3); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: .8rem; color: var(--accent); }
+.client-name { font-size: 1rem; font-weight: 500; color: var(--text); }
+.client-role { font-family: var(--mono); font-size: .65rem; letter-spacing: .08em; color: var(--muted); }
+.client-stats { display: flex; gap: 1.5rem; margin-bottom: 1.25rem; }
+.client-stat-val { font-size: 1.2rem; font-weight: 500; color: var(--text); }
+.client-stat-label { font-family: var(--mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted2); }
+
+/* Doc management table */
+.doc-table { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.doc-table-header { display: grid; grid-template-columns: 1fr 140px 120px 120px 100px; gap: 1rem; padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); }
+.doc-table-header span { font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted2); }
+.doc-table-row { display: grid; grid-template-columns: 1fr 140px 120px 120px 100px; gap: 1rem; padding: .9rem 1.25rem; border-bottom: 1px solid var(--border); align-items: center; transition: background .15s; }
+.doc-table-row:last-child { border-bottom: none; }
+.doc-table-row:hover { background: var(--surface2); }
+.doc-table-name { font-size: .9rem; color: var(--text); font-weight: 500; }
+.doc-table-sub { font-family: var(--mono); font-size: .65rem; letter-spacing: .04em; color: var(--muted); margin-top: .2rem; }
+.doc-table-actions { display: flex; gap: .4rem; }
+
+/* Upload area */
+.upload-area { border: 1px dashed var(--border2); border-radius: 6px; padding: 2.5rem; text-align: center; margin-bottom: 1.5rem; cursor: pointer; transition: all .2s; }
+.upload-area:hover { border-color: var(--accent); background: var(--accent-dim); }
+.upload-icon { font-family: var(--mono); font-size: 1.5rem; color: var(--muted2); margin-bottom: .75rem; }
+.upload-text { font-size: .9rem; color: var(--muted); }
+.upload-sub { font-family: var(--mono); font-size: .65rem; letter-spacing: .06em; color: var(--muted2); margin-top: .4rem; }
+
+/* Animations */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .services-grid { grid-template-columns: 1fr; }
+  .doc-grid { grid-template-columns: 1fr; }
+  .admin-sidebar { display: none; }
+  .admin-main { margin-left: 0; }
+  .doc-table-header, .doc-table-row { grid-template-columns: 1fr 80px 80px; }
+  .doc-table-header span:nth-child(3), .doc-table-header span:nth-child(4),
+  .doc-table-row > *:nth-child(3), .doc-table-row > *:nth-child(4) { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+// ── Auth config ──
+// Change these before giving Chuck his login
+const USERS = {
+  'chuck': { password: 'ayres2026', role: 'client', name: 'Charles M. Ayres', initials: 'CA', firm: 'Law Office of Charles M. Ayres' },
+  'matt':  { password: 'pinteq2026', role: 'admin',  name: 'Matt',           initials: 'MP', firm: 'Pinteq LLC' },
+};
+
+// ── Document registry ──
+// Update href links to point to your actual hosted files
+const DOCUMENTS = {
+  chuck: [
+    {
+      id: 'audit',
+      title: 'Smokeball System Audit',
+      desc: 'Complete audit of the current Smokeball environment — what\'s working, where the gaps are, and the integration roadmap.',
+      type: 'PDF',
+      date: 'May 2026',
+      status: 'ready',
+      tag: 'Foundation',
+      tagType: 'blue',
+      href: '/docs/Smokeball_System_Audit.pdf',
+    },
+    {
+      id: 'proposal',
+      title: 'Professional Services Proposal',
+      desc: 'Engagement terms, service lines, rates, and first-engagement scope of work for review and signature.',
+      type: 'PDF',
+      date: 'May 2026',
+      status: 'action',
+      tag: 'Signature required',
+      tagType: 'warm',
+      href: '/docs/Pinteq_Client_Proposal_Ayres.pdf',
+    },
+    {
+      id: 'before-after',
+      title: 'Discovery Workflow — Before & After',
+      desc: 'Visual comparison of the current discovery flow versus the pipeline Pinteq will implement.',
+      type: 'DOC',
+      date: 'May 2026',
+      status: 'ready',
+      tag: 'Reference',
+      tagType: 'muted',
+      href: '/docs/pinteq_flowchart_before_after.html',
+    },
+    {
+      id: 'pipeline',
+      title: 'Case Intelligence Pipeline',
+      desc: 'Technical overview of the five-stage pipeline — from raw discovery to queryable case intelligence.',
+      type: 'DOC',
+      date: 'May 2026',
+      status: 'ready',
+      tag: 'Reference',
+      tagType: 'muted',
+      href: '/docs/pinteq_flowchart_pipeline.html',
+    },
+  ]
+};
+
+// ── Shared components ──
+function PinMark({ size = 16, className = '' }) {
+  return (
+    <div className={`pin-mark ${className}`} style={{ fontSize: size }}>
+      <span className="bar">|</span>
+      <span className="word">pinteq</span>
+      <span className="bar">|</span>
+    </div>
+  );
+}
+
+function useScrolled() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
+  }, []);
+  return scrolled;
+}
+
+// ── Landing page ──
+function Landing({ onNavigate }) {
+  const scrolled = useScrolled();
+  return (
+    <div className="landing">
+      <nav className={`nav ${scrolled ? 'solid' : ''}`}>
+        <PinMark size={14} />
+        <ul className="nav-links">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="#" onClick={e => { e.preventDefault(); onNavigate('login'); }} style={{ color: 'var(--accent)' }}>Client portal →</a></li>
+        </ul>
+      </nav>
+
+      <section className="hero">
+        <div className="hero-grid" />
+        <div className="hero-glow" />
+        <div className="hero-inner">
+          <p className="hero-pre">West Michigan · Est. 2026</p>
+          <div className="hero-mark-large">
+            <span className="bar">|</span>
+            <span>pinteq</span>
+            <span className="bar">|</span>
+          </div>
+          <p className="hero-art">The art of information.</p>
+          <p className="hero-desc">Operational Intelligence & Workflow Systems</p>
+          <div className="hero-rule" />
+          <p className="hero-statement">
+            We investigate. We build. We deliver.<br/>
+            <strong>Information gathered, structured, and formed into something you can act on.</strong>
+          </p>
+          <div className="hero-pills">
+            <span className="hero-pill">Investigative intelligence</span>
+            <span className="hero-pill">Systems & software</span>
+            <span className="hero-pill">Analytical design</span>
+          </div>
+          <div className="hero-ctas">
+            <a href="#contact" className="btn btn-primary">Start a conversation →</a>
+            <button className="btn btn-ghost" onClick={() => onNavigate('login')}>Client portal</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Services */}
+      <section className="section" id="services">
+        <div className="section-kicker">What we deliver</div>
+        <h2 className="section-heading">Three disciplines.<br/><em>One practiced hand.</em></h2>
+        <p className="section-sub">Every engagement produces something tangible — not a recommendation, a finished deliverable you can use immediately.</p>
+        <div className="services-grid">
+          {[
+            { num: '01 ·', title: 'Intelligence & OSINT research', desc: 'Subject profiles, relationship mapping, digital footprint analysis, and public records research. Delivered as sourced, confidence-rated analytical products ready for immediate action.' },
+            { num: '02 ·', title: 'Workflow systems & software', desc: 'Custom intake pipelines, document normalization, database architecture, and workflow automation built precisely for how the operation actually works. Integrated with your existing infrastructure.' },
+            { num: '03 ·', title: 'Analysis & reporting', desc: 'Witness intelligence briefs, timeline reconstruction, prosecution theory mapping, and evidence gap analysis. Formatted for immediate operational use — not archiving.' },
+          ].map(s => (
+            <div key={s.num} className="service-card">
+              <div className="service-num">{s.num}</div>
+              <div className="service-title">{s.title}</div>
+              <div className="service-desc">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* About */}
+      <section className="section" id="about" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '5rem', alignItems: 'start' }}>
+        <div>
+          <div className="section-kicker">About</div>
+          <h2 className="section-heading" style={{ marginBottom: '1.5rem' }}>Built on the belief that <em>information is the material.</em></h2>
+          <p style={{ fontSize: '1.05rem', color: 'rgba(234,234,244,0.6)', lineHeight: '1.85', marginBottom: '1.5rem' }}>
+            Pinteq is a West Michigan-based practice specializing in investigative intelligence, custom systems development, and analytical design. We work across criminal, corporate, and operational contexts — wherever complex or scattered information needs to be gathered, structured, and formed into something actionable.
+          </p>
+          <p style={{ fontSize: '1.05rem', color: 'rgba(234,234,244,0.6)', lineHeight: '1.85', marginBottom: '1.5rem' }}>
+            We are not a large firm. We take a small number of engagements at a time and work them deeply.
+          </p>
+          <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--accent-warm)', lineHeight: '1.6', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+            "The art of information is not decoration. It is the discipline of giving raw material a form that makes it undeniable."
+          </p>
+        </div>
+        <div>
+          {[
+            ['Practice type', 'Independent practitioner · embedded engagements · selective clientele'],
+            ['Primary disciplines', 'Investigative intelligence · systems & software · analytical design'],
+            ['Contexts', 'Criminal defense · corporate operations · personal investigation'],
+            ['Based in', 'West Michigan · serving clients statewide'],
+            ['Accepting', 'A limited number of new engagements — reach out to discuss fit'],
+          ].map(([label, value]) => (
+            <div key={label} style={{ borderBottom: '1px solid var(--border)', padding: '1.25rem 0' }}>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: '.6rem', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: '.4rem' }}>{label}</div>
+              <div style={{ fontSize: '.95rem', color: 'var(--text)' }}>{value}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section className="section" id="contact" style={{ paddingBottom: '8rem' }}>
+        <div className="contact-inner">
+          <div className="section-kicker" style={{ justifyContent: 'center' }}>Contact</div>
+          <h2 className="contact-heading">Let's find out<br/><em>if we're a fit.</em></h2>
+          <p className="contact-sub">We work with a small number of clients at a time. If the work sounds relevant, reach out directly.</p>
+          <a href="mailto:matt@pinteq.co" className="contact-email">matt@pinteq.co</a>
+        </div>
+      </section>
+
+      <footer>
+        <div className="footer-left">
+          <PinMark size={12} />
+          <div className="footer-tagline">The art of information.</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <button className="footer-portal-link btn" style={{ padding: 0, background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }} onClick={() => onNavigate('login')}>Client portal →</button>
+          <div className="footer-copy">© 2026 Pinteq LLC · West Michigan</div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ── Login page ──
+function Login({ onLogin, onNavigate }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 600));
+    const user = USERS[username.toLowerCase()];
+    if (user && user.password === password) {
+      onLogin({ ...user, username: username.toLowerCase() });
+    } else {
+      setError('Invalid credentials. Please try again.');
+    }
+    setLoading(false);
+  }, [username, password, onLogin]);
+
+  return (
+    <div className="login-page">
+      <div className="login-bg" />
+      <div className="login-box">
+        <div className="login-mark">
+          <PinMark size={16} />
+        </div>
+        <div className="login-title">Client portal</div>
+        <div className="login-sub">Sign in to access your documents and engagement materials.</div>
+        {error && <div className="login-error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input className="form-input" type="text" placeholder="username" value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input className="form-input" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
+          </div>
+          <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: '.5rem' }}>
+            {loading ? 'Signing in...' : 'Sign in →'}
+          </button>
+        </form>
+        <a href="#" className="login-back" onClick={e => { e.preventDefault(); onNavigate('landing'); }}>← Back to pinteq.co</a>
+      </div>
+    </div>
+  );
+}
+
+// ── Client portal ──
+function ClientPortal({ user, onLogout }) {
+  const docs = DOCUMENTS[user.username] || DOCUMENTS.chuck;
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  return (
+    <div className="portal-layout">
+      <header className="portal-header">
+        <div className="portal-header-left">
+          <PinMark size={14} />
+          <span className="portal-badge">Client portal</span>
+        </div>
+        <div className="portal-user">
+          <div className="portal-avatar">{user.initials}</div>
+          <div>
+            <div style={{ fontSize: '.85rem', fontWeight: 500, color: 'var(--text)' }}>{user.name}</div>
+            <div className="portal-username">{user.firm}</div>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={onLogout} style={{ marginLeft: '.75rem' }}>Sign out</button>
+        </div>
+      </header>
+
+      <div className="portal-body">
+
+        <div className="portal-welcome">
+          <h1>Good to have you, {user.name.split(' ')[0]}.</h1>
+          <p>Your engagement materials are ready for review.</p>
+          <div className="portal-welcome-date">{today}</div>
+        </div>
+
+        {/* Status bar */}
+        <div className="portal-section-label">Engagement status</div>
+        <div className="status-bar">
+          <div className="status-item">
+            <div className="status-label">Engagement</div>
+            <div className="status-value green">Active</div>
+          </div>
+          <div className="status-divider" />
+          <div className="status-item">
+            <div className="status-label">Documents</div>
+            <div className="status-value">{docs.length} ready</div>
+          </div>
+          <div className="status-divider" />
+          <div className="status-item">
+            <div className="status-label">Proposal</div>
+            <div className="status-value amber">Pending signature</div>
+          </div>
+          <div className="status-divider" />
+          <div className="status-item">
+            <div className="status-label">Module 1</div>
+            <div className="status-value amber">In development</div>
+          </div>
+          <div className="status-divider" />
+          <div className="status-item">
+            <div className="status-label">PI hours</div>
+            <div className="status-value green">Logging active</div>
+          </div>
+        </div>
+
+        {/* Documents */}
+        <div className="portal-section-label" style={{ marginBottom: '1.25rem' }}>Your documents</div>
+        <div className="doc-grid">
+          {docs.map(doc => (
+            <a key={doc.id} className="doc-card" href={doc.href} target="_blank" rel="noopener noreferrer">
+              <div className="doc-card-top">
+                <div className="doc-icon">{doc.type}</div>
+                <span className={`tag tag-${doc.tagType}`}>{doc.tag}</span>
+              </div>
+              <div className="doc-title">{doc.title}</div>
+              <div className="doc-desc">{doc.desc}</div>
+              <div className="doc-meta">
+                <span className="doc-date">{doc.date}</span>
+                <span className="doc-action">Open →</span>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        {/* Next steps */}
+        <div className="portal-section-label">Next steps</div>
+        <div className="next-steps">
+          {[
+            { num: '01', title: 'Review the proposal', desc: 'Page 1 covers the engagement terms and rates. Page 2 covers the first 30-day scope.', tag: 'Action required', tagType: 'warm' },
+            { num: '02', title: 'Authorize Smokeball API access', desc: 'A brief email to Smokeball support from your account. Matt will draft this for you.', tag: 'This week', tagType: 'blue' },
+            { num: '03', title: 'Agree on file naming convention', desc: '30-minute conversation to define the standard format for all incoming discovery files.', tag: 'This week', tagType: 'blue' },
+            { num: '04', title: 'Identify first priority matter', desc: 'Direct Matt to the highest-priority active case for immediate intelligence work.', tag: 'Immediate', tagType: 'green' },
+          ].map(step => (
+            <div key={step.num} className="next-step">
+              <div className="next-step-num">{step.num}</div>
+              <div className="next-step-body">
+                <div className="next-step-title">{step.title}</div>
+                <div className="next-step-desc">{step.desc}</div>
+              </div>
+              <div className="next-step-tag"><span className={`tag tag-${step.tagType}`}>{step.tag}</span></div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ── Admin view ──
+function AdminPortal({ user, onLogout }) {
+  const [activeNav, setActiveNav] = useState('clients');
+  const [docs, setDocs] = useState(DOCUMENTS.chuck);
+
+  const navItems = [
+    { id: 'clients', label: 'Clients' },
+    { id: 'documents', label: 'Documents' },
+    { id: 'activity', label: 'Activity log' },
+    { id: 'settings', label: 'Settings' },
+  ];
+
+  return (
+    <div className="admin-layout">
+      <aside className="admin-sidebar">
+        <div className="admin-logo">
+          <PinMark size={13} />
+          <div className="admin-badge">Admin console</div>
+        </div>
+
+        <div>
+          <div className="admin-nav-label">Navigation</div>
+          <div className="admin-nav">
+            {navItems.map(item => (
+              <button key={item.id} className={`admin-nav-item ${activeNav === item.id ? 'active' : ''}`} onClick={() => setActiveNav(item.id)}>
+                <span className="admin-nav-dot" />
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+          <div style={{ fontSize: '.85rem', fontWeight: 500, color: 'var(--text)', marginBottom: '.25rem' }}>{user.name}</div>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', letterSpacing: '.06em', color: 'var(--muted)', marginBottom: '1rem' }}>Administrator</div>
+          <button className="btn btn-ghost btn-sm" onClick={onLogout}>Sign out</button>
+        </div>
+      </aside>
+
+      <main className="admin-main">
+
+        {activeNav === 'clients' && (
+          <>
+            <div className="admin-header">
+              <div>
+                <div className="admin-title">Client accounts</div>
+                <div className="admin-subtitle">Manage portal access and document visibility</div>
+              </div>
+              <button className="btn btn-primary btn-sm">+ Add client</button>
+            </div>
+
+            <div className="client-cards">
+              <div className="client-card">
+                <div className="client-card-header">
+                  <div className="client-avatar-lg">CA</div>
+                  <span className="tag tag-green">Active</span>
+                </div>
+                <div className="client-name">Charles M. Ayres</div>
+                <div className="client-role">Attorney at Law · Law Office of Charles M. Ayres</div>
+                <div className="client-stats" style={{ marginTop: '1rem' }}>
+                  <div>
+                    <div className="client-stat-val">4</div>
+                    <div className="client-stat-label">Documents</div>
+                  </div>
+                  <div>
+                    <div className="client-stat-val" style={{ color: 'var(--accent-warm)' }}>1</div>
+                    <div className="client-stat-label">Pending action</div>
+                  </div>
+                  <div>
+                    <div className="client-stat-val">May 2026</div>
+                    <div className="client-stat-label">Since</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '.5rem' }}>
+                  <button className="btn btn-ghost btn-sm">View portal</button>
+                  <button className="btn btn-ghost btn-sm">Edit access</button>
+                </div>
+              </div>
+
+              <div className="client-card" style={{ border: '1px dashed var(--border2)', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', cursor: 'pointer', minHeight: '200px' }}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: '1.5rem', color: 'var(--muted2)', marginBottom: '.75rem' }}>+</div>
+                <div style={{ fontSize: '.9rem', color: 'var(--muted)', marginBottom: '.25rem' }}>Add new client</div>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: '.65rem', letterSpacing: '.08em', color: 'var(--muted2)' }}>Configure portal access</div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeNav === 'documents' && (
+          <>
+            <div className="admin-header">
+              <div>
+                <div className="admin-title">Document management</div>
+                <div className="admin-subtitle">Upload and manage client-facing documents</div>
+              </div>
+              <button className="btn btn-primary btn-sm">+ Upload document</button>
+            </div>
+
+            <div className="upload-area">
+              <div className="upload-icon">⊕</div>
+              <div className="upload-text">Drop files here or click to upload</div>
+              <div className="upload-sub">PDF · DOCX · HTML · PNG · JPG</div>
+            </div>
+
+            <div className="doc-table">
+              <div className="doc-table-header">
+                <span>Document</span>
+                <span>Client</span>
+                <span>Type</span>
+                <span>Date</span>
+                <span>Actions</span>
+              </div>
+              {docs.map(doc => (
+                <div key={doc.id} className="doc-table-row">
+                  <div>
+                    <div className="doc-table-name">{doc.title}</div>
+                    <div className="doc-table-sub">{doc.desc.slice(0, 60)}...</div>
+                  </div>
+                  <span className="tag tag-blue" style={{ alignSelf: 'center' }}>C. Ayres</span>
+                  <span className="tag tag-muted" style={{ alignSelf: 'center' }}>{doc.type}</span>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: '.65rem', color: 'var(--muted2)', alignSelf: 'center' }}>{doc.date}</div>
+                  <div className="doc-table-actions">
+                    <button className="btn btn-ghost btn-sm">Edit</button>
+                    <button className="btn btn-danger btn-sm">✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {activeNav === 'activity' && (
+          <>
+            <div className="admin-header">
+              <div>
+                <div className="admin-title">Activity log</div>
+                <div className="admin-subtitle">Portal access and document activity</div>
+              </div>
+            </div>
+            <div className="doc-table">
+              {[
+                { time: 'Today · 2:14 PM', action: 'Portal accessed', detail: 'C. Ayres signed in · viewed proposal and audit', type: 'blue' },
+                { time: 'Today · 10:31 AM', action: 'Document uploaded', detail: 'Pinteq_Client_Proposal_Ayres.pdf added to C. Ayres portal', type: 'green' },
+                { time: 'Today · 10:28 AM', action: 'Document uploaded', detail: 'Smokeball_System_Audit.pdf added to C. Ayres portal', type: 'green' },
+                { time: 'Today · 9:15 AM', action: 'Client created', detail: 'Charles M. Ayres portal account configured', type: 'muted' },
+              ].map((item, i) => (
+                <div key={i} className="doc-table-row" style={{ gridTemplateColumns: '160px 1fr auto' }}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: '.65rem', letterSpacing: '.04em', color: 'var(--muted2)' }}>{item.time}</div>
+                  <div>
+                    <div className="doc-table-name">{item.action}</div>
+                    <div className="doc-table-sub">{item.detail}</div>
+                  </div>
+                  <span className={`tag tag-${item.type}`} style={{ alignSelf: 'center' }}>{item.action.split(' ')[0]}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {activeNav === 'settings' && (
+          <>
+            <div className="admin-header">
+              <div>
+                <div className="admin-title">Settings</div>
+                <div className="admin-subtitle">Portal configuration and credentials</div>
+              </div>
+            </div>
+            <div className="doc-table" style={{ padding: '2rem' }}>
+              <div style={{ marginBottom: '2rem' }}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: '.65rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: '.75rem' }}>Portal credentials</div>
+                <div style={{ fontSize: '.85rem', color: 'var(--muted)', lineHeight: '1.7', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '6px', padding: '1.25rem', fontFamily: 'var(--mono)' }}>
+                  <div style={{ marginBottom: '.5rem' }}>Client · <span style={{ color: 'var(--accent)' }}>chuck</span> / <span style={{ color: 'var(--accent)' }}>ayres2026</span></div>
+                  <div>Admin · <span style={{ color: 'var(--accent)' }}>matt</span> / <span style={{ color: 'var(--accent)' }}>pinteq2026</span></div>
+                </div>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', color: 'var(--muted2)', marginTop: '.75rem' }}>Change these before sharing with client. Hard-coded for v1 — real auth coming in v2.</div>
+              </div>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: '.65rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted2)', marginBottom: '.75rem' }}>Document storage</div>
+              <div style={{ fontSize: '.85rem', color: 'var(--muted)', lineHeight: '1.7' }}>
+                Documents are linked via the href field in the DOCUMENTS config at the top of the file. Update paths to point to your hosted files. Recommend: /public/docs/ folder in the Vercel project, or a cloud storage URL.
+              </div>
+            </div>
+          </>
+        )}
+
+      </main>
+    </div>
+  );
+}
+
+// ── App root ──
+function App() {
+  const [view, setView] = useState('landing');
+  const [user, setUser] = useState(null);
+
+  const handleLogin = useCallback((userData) => {
+    setUser(userData);
+    setView(userData.role === 'admin' ? 'admin' : 'portal');
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    setView('landing');
+  }, []);
+
+  if (view === 'landing') return <Landing onNavigate={setView} />;
+  if (view === 'login') return <Login onLogin={handleLogin} onNavigate={setView} />;
+  if (view === 'portal' && user) return <ClientPortal user={user} onLogout={handleLogout} />;
+  if (view === 'admin' && user) return <AdminPortal user={user} onLogout={handleLogout} />;
+  return <Landing onNavigate={setView} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

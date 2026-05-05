@@ -1,0 +1,15 @@
+watchdog
+pdfplumber
+PyMuPDF
+pandas
+python-magic
+python-magic-bin; platform_system == "Windows"
+requests
+flask
+python-dotenv
+openai
+pytest
+pytest-cov
+fastapi
+uvicorn
+pydantic
