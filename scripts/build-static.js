@@ -6,7 +6,7 @@ const dist = path.join(root, "dist");
 
 const pages = [
   {
-    source: path.join("site", "index.html"),
+    source: path.join("Reporting_App", "index.html"),
     output: "index.html",
     canonical: "https://pinteq.co/",
     description:
@@ -70,3 +70,4 @@ ${pages
 );
 
 console.log(`Built ${pages.length} public page into ${path.relative(root, dist)}`);
+
