@@ -7,7 +7,8 @@
     "dev": "node scripts/dev-server.js",
     "build": "node scripts/build-static.js",
     "preview": "node scripts/dev-server.js dist",
-    "b4": "node scripts/b4-server.js"
+    "b4": "node scripts/b4-server.js",
+    "install": "cd Reporting_App && npm install"
   },
   "dependencies": {
     "express": "^4.19.2"
