@@ -24,23 +24,30 @@ export interface ToolDef {
 
 export const TOOL_REGISTRY: ToolDef[] = [
   // ── Core investigation workspaces ───────────────────────────────────────
-  { id: 'dashboard',             label: 'Dashboard',                accent: 'var(--accent-saffron)',    group: 'Overview' },
-  { id: 'b4-briefs',             label: 'B4 Witness Briefs',        accent: 'var(--color-b4)',          group: 'Witnesses' },
+  { id: 'dashboard',             label: 'Dashboard',                accent: 'var(--accent-saffron)' },
+  { id: 'b4-briefs',             label: 'B4 Witness Briefs',        accent: 'var(--color-b4)' },
 
   // ── Timeline & events ───────────────────────────────────────────────────
-  { id: 'timeline',              label: 'Timeline Reconstruction',  accent: 'var(--color-timeline)',    group: 'Analysis' },
+  { id: 'timeline',              label: 'Timeline Reconstruction',  accent: 'var(--color-timeline)' },
   { id: 'prosecution-timeline',  label: 'Prosecution Timeline',     accent: 'var(--color-prosecution)' },
 
   // ── Communications & networks ────────────────────────────────────────────
-  { id: 'phone-analysis',        label: 'Phone Analysis',           accent: 'var(--color-phone)',       group: 'Communications' },
+  { id: 'phone-analysis',        label: 'Phone Analysis',           accent: 'var(--color-phone)' },
   { id: 'contact-graph',         label: 'Contact Network',          accent: 'var(--color-graph)' },
 
   // ── Evidence ─────────────────────────────────────────────────────────────
-  { id: 'evidence-gap',          label: 'Evidence Gap Analysis',    accent: 'var(--color-gap)',         group: 'Evidence' },
+  { id: 'evidence-gap',          label: 'Evidence Gap Analysis',    accent: 'var(--color-gap)' },
 
   // ── System ───────────────────────────────────────────────────────────────
   { id: 'settings',              label: 'Settings',                 accent: 'var(--border-slate)',      bottom: true },
 ]
 
+export const RIGHT_TOOLS_REGISTRY: ToolDef[] = [
+  { id: 'osint-search',          label: 'OSINT Tools',              accent: 'var(--accent-terra)' },
+  { id: 'case-law',              label: 'Case Law Search',          accent: 'var(--accent-terra)' },
+  { id: 'evidence-search',       label: 'Evidence Search',          accent: 'var(--accent-blue)' },
+]
+
 /** Derived union type — automatically stays in sync with the registry */
 export type ViewState = typeof TOOL_REGISTRY[number]['id']
+export type RightToolState = typeof RIGHT_TOOLS_REGISTRY[number]['id'] | null

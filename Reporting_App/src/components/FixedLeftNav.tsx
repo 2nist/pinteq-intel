@@ -38,22 +38,13 @@ function NavList({
   current: ViewState
   onSelect: (v: ViewState) => void
 }) {
-  let lastGroup: string | undefined
-
   return (
     <>
       {items.map(item => {
-        const isActive   = current === item.id
-        const showGroup  = item.group && item.group !== lastGroup
-        lastGroup        = item.group
+        const isActive = current === item.id
 
         return (
           <div key={item.id}>
-            {showGroup && (
-              <div className="text-[9px] font-semibold uppercase tracking-widest text-muted px-3 pt-3 pb-1 opacity-60">
-                {item.group}
-              </div>
-            )}
             <button
               type="button"
               onClick={() => onSelect(item.id)}

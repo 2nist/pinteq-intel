@@ -6,7 +6,11 @@ import { AgencyBadge, inferAgency } from './shared/AgencyBadge'
 import { StatusBadge, type StatusLevel } from './shared/StatusBadge'
 import { cn } from '@/lib/utils'
 
-const API = 'http://localhost:3001'
+// ── Environment-aware API base URLs ──────────────────────────────────────
+// Use Vite proxy in dev, explicit production URLs otherwise.
+const B4_SERVER = import.meta.env.VITE_B4_API_URL || 'http://localhost:3001'
+const INTEL_API = import.meta.env.VITE_INTEL_API_URL || 'http://localhost:8000/api/intel'
+
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -21,10 +25,10 @@ interface Witness {
 
 type CredRating = 'HIGH' | 'MODERATE' | 'LOW' | 'UNKNOWN'
 
-interface StatementRow    { id: string; date: string; summary: string; source: string; flags: string }
-interface ContradictionRow{ id: string; topic: string; statementA: string; statementB: string; significance: string }
-interface CrossExamRow    { id: string; angle: string; basis: string; exhibit: string }
-interface SourceRow       { id: string; ref: string; type: string; description: string; accessed: string; privilege: string }
+interface StatementRow { id: string; date: string; summary: string; source: string; flags: string }
+interface ContradictionRow { id: string; topic: string; statementA: string; statementB: string; significance: string }
+interface CrossExamRow { id: string; angle: string; basis: string; exhibit: string }
+interface SourceRow { id: string; ref: string; type: string; description: string; accessed: string; privilege: string }
 
 interface Brief {
   witness_id?: string
@@ -88,10 +92,10 @@ function Field({
 }
 
 const CRED_BUTTONS: { value: CredRating; label: string; level: StatusLevel }[] = [
-  { value: 'HIGH',     label: 'HIGH — Reliable',        level: 'high'     },
-  { value: 'MODERATE', label: 'MODERATE — Verify',       level: 'moderate' },
-  { value: 'LOW',      label: 'LOW — Vulnerable',        level: 'low'      },
-  { value: 'UNKNOWN',  label: 'UNKNOWN — Insufficient',  level: 'unknown'  },
+  { value: 'HIGH', label: 'HIGH — Reliable', level: 'high' },
+  { value: 'MODERATE', label: 'MODERATE — Verify', level: 'moderate' },
+  { value: 'LOW', label: 'LOW — Vulnerable', level: 'low' },
+  { value: 'UNKNOWN', label: 'UNKNOWN — Insufficient', level: 'unknown' },
 ]
 
 // ── Witness Photo Fetch Button ────────────────────────────────────────────────
@@ -99,17 +103,17 @@ const CRED_BUTTONS: { value: CredRating; label: string; level: StatusLevel }[] =
 interface PhotoCandidate { thumb: string; full: string; title: string; source: string }
 
 function PhotoFetchButton({ witnessId, onFetched }: { witnessId: number; onFetched: () => void }) {
-  const [state, setState]           = useState<'idle' | 'searching' | 'picking' | 'saving' | 'done' | 'not_found' | 'error'>('idle')
+  const [state, setState] = useState<'idle' | 'searching' | 'picking' | 'saving' | 'done' | 'not_found' | 'error'>('idle')
   const [candidates, setCandidates] = useState<PhotoCandidate[]>([])
-  const [errMsg, setErrMsg]         = useState('')
+  const [errMsg, setErrMsg] = useState('')
 
   async function handleSearch() {
     setState('searching')
     setCandidates([])
     try {
-      const res  = await fetch(`${API}/api/witnesses/${witnessId}/photo/fetch-web`, { method: 'POST' })
+      const res = await fetch(`${B4_SERVER}/api/witnesses/${witnessId}/photo/fetch-web`, { method: 'POST' })
       const data = await res.json()
-      if (data.status === 'already_have')   { setState('done'); onFetched(); return }
+      if (data.status === 'already_have') { setState('done'); onFetched(); return }
       if (data.status === 'candidates' && data.candidates?.length) {
         setCandidates(data.candidates)
         setState('picking')
@@ -122,7 +126,7 @@ function PhotoFetchButton({ witnessId, onFetched }: { witnessId: number; onFetch
   async function handleConfirm(url: string) {
     setState('saving')
     try {
-      const res  = await fetch(`${API}/api/witnesses/${witnessId}/photo/confirm-web`, {
+      const res = await fetch(`${B4_SERVER}/api/witnesses/${witnessId}/photo/confirm-web`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
@@ -133,11 +137,11 @@ function PhotoFetchButton({ witnessId, onFetched }: { witnessId: number; onFetch
     } catch { setState('error'); setErrMsg('Network error') }
   }
 
-  if (state === 'done')      return <div className="text-xs text-status-success-text">✓ Photo saved</div>
+  if (state === 'done') return <div className="text-xs text-status-success-text">✓ Photo saved</div>
   if (state === 'not_found') return <div className="text-xs text-muted italic">No public photo found</div>
-  if (state === 'error')     return <div className="text-xs text-status-error-text" title={errMsg}>Search failed · <button className="underline" onClick={() => setState('idle')}>retry</button></div>
+  if (state === 'error') return <div className="text-xs text-status-error-text" title={errMsg}>Search failed · <button className="underline" onClick={() => setState('idle')}>retry</button></div>
   if (state === 'searching') return <div className="flex items-center gap-1 text-xs text-muted"><Loader2 className="w-3 h-3 animate-spin" />Searching…</div>
-  if (state === 'saving')    return <div className="flex items-center gap-1 text-xs text-muted"><Loader2 className="w-3 h-3 animate-spin" />Saving…</div>
+  if (state === 'saving') return <div className="flex items-center gap-1 text-xs text-muted"><Loader2 className="w-3 h-3 animate-spin" />Saving…</div>
 
   if (state === 'picking') {
     return (
@@ -217,11 +221,11 @@ function DynTable<T extends { id: string }>({
 
 export function B4BriefWorkspace() {
   const [witnesses, setWitnesses] = useState<Witness[]>([])
-  const [search, setSearch]       = useState('')
+  const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [brief, setBrief]         = useState<Brief>(emptyBrief())
+  const [brief, setBrief] = useState<Brief>(emptyBrief())
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [photoKey, setPhotoKey]   = useState(0)
+  const [photoKey, setPhotoKey] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle')
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -231,7 +235,7 @@ export function B4BriefWorkspace() {
     if (!selectedId) return
     setUploadStatus('uploading')
     try {
-      const res = await fetch(`${API}/api/witnesses/${selectedId}/photo`, {
+      const res = await fetch(`${B4_SERVER}/api/witnesses/${selectedId}/photo`, {
         method: 'POST',
         headers: { 'Content-Type': file.type },
         body: file,
@@ -242,12 +246,12 @@ export function B4BriefWorkspace() {
   }
 
   useEffect(() => {
-    fetch(`${API}/api/witnesses`).then(r => r.json()).then(setWitnesses).catch(console.error)
+    fetch(`${INTEL_API}/witnesses`).then(r => r.json()).then(setWitnesses).catch(console.error)
   }, [])
 
   useEffect(() => {
     if (selectedId === null) { setBrief(emptyBrief()); return }
-    fetch(`${API}/api/brief/${selectedId}`).then(r => r.json()).then(data => {
+    fetch(`${B4_SERVER}/api/brief/${selectedId}`).then(r => r.json()).then(data => {
       const loaded = { ...emptyBrief(), ...data }
       for (const k of ['statements', 'contradictions', 'cross_exam', 'sources'] as const) {
         if (!Array.isArray(loaded[k])) (loaded as Brief)[k] = [] as never
@@ -270,7 +274,7 @@ export function B4BriefWorkspace() {
   const saveBrief = useCallback(async (id: number, data: Brief) => {
     setSaveStatus('saving')
     try {
-      await fetch(`${API}/api/brief/${id}`, {
+      await fetch(`${B4_SERVER}/api/brief/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -316,7 +320,7 @@ export function B4BriefWorkspace() {
   }
 
   const witness = witnesses.find(w => w.id === selectedId) ?? null
-  const agency  = witness ? inferAgency(witness.role) : null
+  const agency = witness ? inferAgency(witness.role) : null
 
   const filtered = witnesses.filter(w =>
     !search || w.full_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -324,13 +328,13 @@ export function B4BriefWorkspace() {
   )
 
   const osintLinks = witness ? [
-    { label: 'Michigan OTIS',     url: `https://mdocweb.state.mi.us/otis2/otis2.aspx` },
-    { label: 'MiCOURT',           url: `https://courts.michigan.gov` },
-    { label: 'ICHAT',             url: `https://ichat.state.mi.us/` },
-    { label: 'Spokeo',            url: `https://www.spokeo.com/search?q=${encodeURIComponent(witness.full_name)}` },
-    { label: 'Google',            url: `https://www.google.com/search?q=${encodeURIComponent(witness.full_name + ' Muskegon Michigan')}` },
-    { label: 'Facebook',          url: `https://www.facebook.com/search/top/?q=${encodeURIComponent(witness.full_name)}` },
-    { label: 'MN DOC (Van Raalte)',url: `https://coms.doc.state.mn.us/publicviewer/` },
+    { label: 'Michigan OTIS', url: `https://mdocweb.state.mi.us/otis2/otis2.aspx` },
+    { label: 'MiCOURT', url: `https://courts.michigan.gov` },
+    { label: 'ICHAT', url: `https://ichat.state.mi.us/` },
+    { label: 'Spokeo', url: `https://www.spokeo.com/search?q=${encodeURIComponent(witness.full_name)}` },
+    { label: 'Google', url: `https://www.google.com/search?q=${encodeURIComponent(witness.full_name + ' Muskegon Michigan')}` },
+    { label: 'Facebook', url: `https://www.facebook.com/search/top/?q=${encodeURIComponent(witness.full_name)}` },
+    { label: 'MN DOC (Van Raalte)', url: `https://coms.doc.state.mn.us/publicviewer/` },
   ] : []
 
   return (
@@ -406,9 +410,9 @@ export function B4BriefWorkspace() {
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-[11px] text-muted">{witness.matter_id} · {witness.case_no}</span>
                   {uploadStatus === 'uploading' && <span className="flex items-center gap-1 text-xs text-muted"><Loader2 className="w-3 h-3 animate-spin" />Uploading…</span>}
-                  {uploadStatus === 'done'      && <span className="text-xs text-status-success-text">✓ Photo updated</span>}
-                  {uploadStatus === 'error'     && <span className="text-xs text-status-error-text">Upload failed</span>}
-                  {uploadStatus === 'idle'      && <PhotoFetchButton witnessId={witness.id} onFetched={bumpPhoto} />}
+                  {uploadStatus === 'done' && <span className="text-xs text-status-success-text">✓ Photo updated</span>}
+                  {uploadStatus === 'error' && <span className="text-xs text-status-error-text">Upload failed</span>}
+                  {uploadStatus === 'idle' && <PhotoFetchButton witnessId={witness.id} onFetched={bumpPhoto} />}
                 </div>
               </div>
               <div className="flex gap-2 items-start print:hidden shrink-0">
@@ -426,17 +430,17 @@ export function B4BriefWorkspace() {
             <section className="mb-8">
               <SectionHeader number="1" title="Witness Overview" />
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <Field label="Role in Case"           value={brief.role_in_case}      onChange={v => update({ role_in_case: v })}      placeholder="Prosecution witness / Alleged victim / Co-defendant" />
-                <Field label="Known Aliases"          value={brief.aliases}           onChange={v => update({ aliases: v })}           placeholder="N/A" />
-                <Field label="Date of Birth"          value={brief.dob}               onChange={v => update({ dob: v })}               placeholder="MM/DD/YYYY" />
-                <Field label="Phone Numbers"          value={brief.phones}            onChange={v => update({ phones: v })}            placeholder="Numbers on record" />
-                <Field label="Language"               value={brief.language}          onChange={v => update({ language: v })}          placeholder="English" />
-                <Field label="Relationship to Client" value={brief.relationship}      onChange={v => update({ relationship: v })}      placeholder="Known connection" />
+                <Field label="Role in Case" value={brief.role_in_case} onChange={v => update({ role_in_case: v })} placeholder="Prosecution witness / Alleged victim / Co-defendant" />
+                <Field label="Known Aliases" value={brief.aliases} onChange={v => update({ aliases: v })} placeholder="N/A" />
+                <Field label="Date of Birth" value={brief.dob} onChange={v => update({ dob: v })} placeholder="MM/DD/YYYY" />
+                <Field label="Phone Numbers" value={brief.phones} onChange={v => update({ phones: v })} placeholder="Numbers on record" />
+                <Field label="Language" value={brief.language} onChange={v => update({ language: v })} placeholder="English" />
+                <Field label="Relationship to Client" value={brief.relationship} onChange={v => update({ relationship: v })} placeholder="Known connection" />
               </div>
               <div className="grid grid-cols-1 gap-4">
-                <Field label="Current Address"     value={brief.address}          onChange={v => update({ address: v })}          placeholder="Last known address" />
-                <Field label="Criminal History"    value={brief.criminal_history} onChange={v => update({ criminal_history: v })} textarea rows={2} placeholder="Prior convictions if any" />
-                <Field label="Analyst Summary"     value={brief.analyst_summary}  onChange={v => update({ analyst_summary: v })}  textarea rows={4}
+                <Field label="Current Address" value={brief.address} onChange={v => update({ address: v })} placeholder="Last known address" />
+                <Field label="Criminal History" value={brief.criminal_history} onChange={v => update({ criminal_history: v })} textarea rows={2} placeholder="Prior convictions if any" />
+                <Field label="Analyst Summary" value={brief.analyst_summary} onChange={v => update({ analyst_summary: v })} textarea rows={4}
                   placeholder="2–3 sentence summary of who this person is, why they matter to this case, and your overall assessment of their reliability. This is the first thing Chuck reads. Make it count." />
               </div>
             </section>
@@ -455,11 +459,11 @@ export function B4BriefWorkspace() {
                 ))}
               </div>
               <div className="grid grid-cols-1 gap-4">
-                <Field label="Motive to Lie"        value={brief.cred_motive}       onChange={v => update({ cred_motive: v })}       textarea rows={2} placeholder="Does this witness have a reason to be untruthful? Pending charges, deals offered, personal animus?" />
-                <Field label="Prior Dishonesty"     value={brief.cred_dishonesty}   onChange={v => update({ cred_dishonesty: v })}   textarea rows={2} placeholder="Prior convictions for fraud, perjury, theft, or other crimes of moral turpitude?" />
-                <Field label="Bias Indicators"      value={brief.cred_bias}         onChange={v => update({ cred_bias: v })}         textarea rows={2} placeholder="Financial relationship with state? Romantic or family ties to victim or prosecution witness?" />
-                <Field label="Consistency History"  value={brief.cred_consistency}  onChange={v => update({ cred_consistency: v })}  textarea rows={2} placeholder="Have they changed their story between initial statement, preliminary hearing, and deposition?" />
-                <Field label="OSINT Flags"          value={brief.cred_osint}        onChange={v => update({ cred_osint: v })}        textarea rows={2} placeholder="Anything in public records, social media, or database research that bears on credibility?" />
+                <Field label="Motive to Lie" value={brief.cred_motive} onChange={v => update({ cred_motive: v })} textarea rows={2} placeholder="Does this witness have a reason to be untruthful? Pending charges, deals offered, personal animus?" />
+                <Field label="Prior Dishonesty" value={brief.cred_dishonesty} onChange={v => update({ cred_dishonesty: v })} textarea rows={2} placeholder="Prior convictions for fraud, perjury, theft, or other crimes of moral turpitude?" />
+                <Field label="Bias Indicators" value={brief.cred_bias} onChange={v => update({ cred_bias: v })} textarea rows={2} placeholder="Financial relationship with state? Romantic or family ties to victim or prosecution witness?" />
+                <Field label="Consistency History" value={brief.cred_consistency} onChange={v => update({ cred_consistency: v })} textarea rows={2} placeholder="Have they changed their story between initial statement, preliminary hearing, and deposition?" />
+                <Field label="OSINT Flags" value={brief.cred_osint} onChange={v => update({ cred_osint: v })} textarea rows={2} placeholder="Anything in public records, social media, or database research that bears on credibility?" />
               </div>
             </section>
 
@@ -472,10 +476,10 @@ export function B4BriefWorkspace() {
                 onRemove={id => removeRow('statements', id)}
                 onUpdate={(id, f, v) => updateArr('statements', id, f, v)}
                 columns={[
-                  { key: 'date',    label: 'Date',             flex: 0.6, placeholder: 'MM/DD/YYYY' },
-                  { key: 'summary', label: 'Statement Summary', flex: 3,   placeholder: 'Summary — paraphrased, not quoted' },
-                  { key: 'source',  label: 'Source',            flex: 1,   placeholder: 'Source A · Police report p.4' },
-                  { key: 'flags',   label: 'Flags',             flex: 1,   placeholder: '⛑ Contradicts prior statement' },
+                  { key: 'date', label: 'Date', flex: 0.6, placeholder: 'MM/DD/YYYY' },
+                  { key: 'summary', label: 'Statement Summary', flex: 3, placeholder: 'Summary — paraphrased, not quoted' },
+                  { key: 'source', label: 'Source', flex: 1, placeholder: 'Source A · Police report p.4' },
+                  { key: 'flags', label: 'Flags', flex: 1, placeholder: '⛑ Contradicts prior statement' },
                 ]}
               />
             </section>
@@ -489,9 +493,9 @@ export function B4BriefWorkspace() {
                 onRemove={id => removeRow('contradictions', id)}
                 onUpdate={(id, f, v) => updateArr('contradictions', id, f, v)}
                 columns={[
-                  { key: 'topic',        label: 'Topic',        flex: 1,   placeholder: 'Location at incident' },
-                  { key: 'statementA',   label: 'Statement A',  flex: 2,   placeholder: '"Claim" · Source, date' },
-                  { key: 'statementB',   label: 'Statement B',  flex: 2,   placeholder: '"Conflicting claim" · Source, date' },
+                  { key: 'topic', label: 'Topic', flex: 1, placeholder: 'Location at incident' },
+                  { key: 'statementA', label: 'Statement A', flex: 2, placeholder: '"Claim" · Source, date' },
+                  { key: 'statementB', label: 'Statement B', flex: 2, placeholder: '"Conflicting claim" · Source, date' },
                   { key: 'significance', label: 'Significance', flex: 1.5, placeholder: 'Why this matters — impeachment value' },
                 ]}
               />
@@ -506,9 +510,9 @@ export function B4BriefWorkspace() {
                 onRemove={id => removeRow('cross_exam', id)}
                 onUpdate={(id, f, v) => updateArr('cross_exam', id, f, v)}
                 columns={[
-                  { key: 'angle',   label: 'Cross-Examination Angle', flex: 2,   placeholder: 'Confront prior inconsistent statement re: location' },
-                  { key: 'basis',   label: 'Evidentiary Basis',       flex: 2.5, placeholder: 'Witness stated X to police but testified Y at prelim — direct conflict on material fact' },
-                  { key: 'exhibit', label: 'Exhibit / Doc to Use',    flex: 1.5, placeholder: 'Police report p.4 · Prelim transcript p.12' },
+                  { key: 'angle', label: 'Cross-Examination Angle', flex: 2, placeholder: 'Confront prior inconsistent statement re: location' },
+                  { key: 'basis', label: 'Evidentiary Basis', flex: 2.5, placeholder: 'Witness stated X to police but testified Y at prelim — direct conflict on material fact' },
+                  { key: 'exhibit', label: 'Exhibit / Doc to Use', flex: 1.5, placeholder: 'Police report p.4 · Prelim transcript p.12' },
                 ]}
               />
             </section>
@@ -532,11 +536,11 @@ export function B4BriefWorkspace() {
                 onRemove={id => removeRow('sources', id)}
                 onUpdate={(id, f, v) => updateArr('sources', id, f, v)}
                 columns={[
-                  { key: 'ref',         label: 'Ref',          flex: 0.5, placeholder: 'S-001' },
-                  { key: 'type',        label: 'Type',         flex: 0.7, placeholder: 'Source A' },
-                  { key: 'description', label: 'Description',  flex: 3,   placeholder: 'Police interview report — Officer name, date' },
-                  { key: 'accessed',    label: 'Date Accessed', flex: 0.8, placeholder: 'MM/DD/YYYY' },
-                  { key: 'privilege',   label: 'Privilege',    flex: 1,   placeholder: 'Work Product' },
+                  { key: 'ref', label: 'Ref', flex: 0.5, placeholder: 'S-001' },
+                  { key: 'type', label: 'Type', flex: 0.7, placeholder: 'Source A' },
+                  { key: 'description', label: 'Description', flex: 3, placeholder: 'Police interview report — Officer name, date' },
+                  { key: 'accessed', label: 'Date Accessed', flex: 0.8, placeholder: 'MM/DD/YYYY' },
+                  { key: 'privilege', label: 'Privilege', flex: 1, placeholder: 'Work Product' },
                 ]}
               />
             </section>
@@ -573,10 +577,10 @@ export function B4BriefWorkspace() {
               <div className="text-[10px] font-semibold uppercase tracking-widest text-muted mb-2">Brief Status</div>
               <div className="flex flex-col gap-1.5 text-[11px] text-muted">
                 {[
-                  ['Statements',      brief.statements.length],
-                  ['Contradictions',  brief.contradictions.length],
-                  ['Cross-Exam',      brief.cross_exam.length],
-                  ['Sources',         brief.sources.length],
+                  ['Statements', brief.statements.length],
+                  ['Contradictions', brief.contradictions.length],
+                  ['Cross-Exam', brief.cross_exam.length],
+                  ['Sources', brief.sources.length],
                 ].map(([label, count]) => (
                   <div key={String(label)} className="flex justify-between">
                     <span>{label}</span><span className="text-main font-medium">{count}</span>
@@ -592,8 +596,8 @@ export function B4BriefWorkspace() {
             {saveStatus !== 'idle' && (
               <div className="px-3 py-2 text-[11px] text-center text-muted border-b border-slate">
                 {saveStatus === 'saving' && 'Saving…'}
-                {saveStatus === 'saved'  && '✓ Auto-saved'}
-                {saveStatus === 'error'  && '✕ Save failed'}
+                {saveStatus === 'saved' && '✓ Auto-saved'}
+                {saveStatus === 'error' && '✕ Save failed'}
               </div>
             )}
 

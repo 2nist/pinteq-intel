@@ -3,10 +3,11 @@ import { FormEvent, useState } from 'react'
 
 interface Props {
   onSearch: (query: string) => void
+  onAction?: (action: string) => void
   caseLabel?: string
 }
 
-export function TopStatusBar({ onSearch, caseLabel = 'People v. West' }: Props) {
+export function TopStatusBar({ onSearch, onAction, caseLabel = 'People v. West' }: Props) {
   const [query, setQuery] = useState('')
 
   const submit = (e: FormEvent) => {
@@ -38,16 +39,30 @@ export function TopStatusBar({ onSearch, caseLabel = 'People v. West' }: Props) 
       {/* Case + matter selectors */}
       <div className="flex gap-4 text-sm text-main items-center shrink-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-muted">Matter:</span>
-          <select className="bg-base border border-slate rounded px-2 py-1 outline-none focus:border-saffron h-[28px] max-w-[160px] truncate cursor-pointer hover:bg-elevated transition-colors text-main">
-            <option>{caseLabel}</option>
+          <span className="font-medium text-muted">Client Matter:</span>
+          <select className="bg-base border border-slate rounded px-2 py-1 outline-none focus:border-saffron h-[28px] max-w-[200px] truncate cursor-pointer hover:bg-elevated transition-colors text-main">
+            <optgroup label="Crusader Law LLC">
+              <option>{caseLabel} (Active)</option>
+              <option>State v. Barnes</option>
+            </optgroup>
+            <optgroup label="Defense Group Inc.">
+              <option>U.S. v. Thompson</option>
+            </optgroup>
           </select>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 text-xs text-muted border border-slate rounded px-2 py-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-b4)] inline-block" />
-            KENT-25-7082
-          </span>
+          <button 
+            onClick={() => onAction?.('toggle_tools')}
+            className="flex items-center gap-1.5 bg-slate/10 hover:bg-slate/20 text-muted border border-slate/30 transition-colors px-3 py-1 rounded text-xs font-semibold uppercase tracking-wider mr-2"
+          >
+            Toggle Tools
+          </button>
+          <button 
+            onClick={() => onAction?.('compile_report')}
+            className="flex items-center gap-1.5 bg-saffron/10 hover:bg-saffron/20 text-saffron border border-saffron/30 transition-colors px-3 py-1 rounded text-xs font-semibold uppercase tracking-wider"
+          >
+            Compile Report
+          </button>
         </div>
       </div>
     </header>
